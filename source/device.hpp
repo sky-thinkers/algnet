@@ -29,7 +29,10 @@ public:
     virtual void add_inlink(std::shared_ptr<ILink> link) = 0;
     virtual void update_routing_table(std::shared_ptr<IRoutingDevice> dest,
                                       std::shared_ptr<ILink> link) = 0;
+
     virtual std::shared_ptr<ILink> next_inlink() = 0;
+    virtual std::shared_ptr<ILink> get_link_to_destination(
+        std::shared_ptr<IRoutingDevice> dest) const = 0;
 };
 
 class RoutingModule : public IRoutingDevice {
@@ -42,6 +45,8 @@ public:
 
     // returns next inlink and moves inlinks set iterator forward
     std::shared_ptr<ILink> next_inlink() final;
+    std::shared_ptr<ILink> get_link_to_destination(
+        std::shared_ptr<IRoutingDevice> dest) const final;
 
 private:
     // Ordered set as we need to iterate over the ingress buffers
