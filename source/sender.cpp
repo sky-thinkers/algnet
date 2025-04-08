@@ -105,7 +105,7 @@ Time Sender::process() {
 Time Sender::send_data() {
     Time total_processing_time = 1;
 
-    // TODO: wrap into some method (?)
+    // TODO: wrap packet getting into some method (?)
     if (m_flow_buffer.empty()) {
         LOG_WARN("No packets to send");
         return total_processing_time;
