@@ -4,7 +4,6 @@
 #include "link.hpp"
 #include "logger/logger.hpp"
 
-
 namespace sim {
 
 Receiver::Receiver() : m_router(std::make_unique<RoutingModule>()) {}
@@ -54,10 +53,6 @@ bool Receiver::update_routing_table(std::shared_ptr<IRoutingDevice> dest,
     return m_router->update_routing_table(dest, link);
 }
 
-std::vector<std::shared_ptr<IRoutingDevice>> Receiver::get_neighbours() const {
-    return m_router->get_neighbours();
-};
-
 std::shared_ptr<ILink> Receiver::next_inlink() {
     return m_router->next_inlink();
 };
@@ -91,7 +86,8 @@ Time Receiver::process() {
     }
 
     // TODO: add some receiver ID for easier packet path tracing
-    LOG_INFO("Processing packet from link on receiver. Packet: " + data_packet.to_string());
+    LOG_INFO("Processing packet from link on receiver. Packet: " +
+             data_packet.to_string());
 
     std::shared_ptr<IRoutingDevice> destination = data_packet.get_destination();
     if (data_packet.type == DATA && destination.get() == this) {
@@ -99,8 +95,10 @@ Time Receiver::process() {
         // Not sure if we want to send ack before processing or after it
         total_processing_time += send_ack(data_packet);
     } else {
-        LOG_WARN("Packet arrived to Receiver that is not its destination; using routing table to send it further");
-        std::shared_ptr<ILink> next_link = get_link_to_destination(destination); 
+        LOG_WARN(
+            "Packet arrived to Receiver that is not its destination; using "
+            "routing table to send it further");
+        std::shared_ptr<ILink> next_link = get_link_to_destination(destination);
 
         if (next_link == nullptr) {
             LOG_WARN("No link corresponds to destination device");
@@ -131,7 +129,8 @@ Time Receiver::send_ack(Packet data_packet) {
     }
 
     // TODO: add some receiver ID for easier packet path tracing
-    LOG_INFO("Sent ack after processing packet on receiver. Data packet: " + data_packet.to_string() + ". Ack packet: " + ack.to_string());
+    LOG_INFO("Sent ack after processing packet on receiver. Data packet: " +
+             data_packet.to_string() + ". Ack packet: " + ack.to_string());
 
     link_to_dest->schedule_arrival(ack);
     return processing_time;
