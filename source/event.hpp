@@ -108,7 +108,7 @@ public:
     Time get_time() const;
 
 private:
-    Time m_time;    
+    Time m_time;
 };
 
 struct BaseEvent {

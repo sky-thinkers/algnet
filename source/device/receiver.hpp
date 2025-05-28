@@ -3,15 +3,12 @@
 
 #include "packet.hpp"
 #include "routing_module.hpp"
-#include "utils/identifier_factory.hpp"
 
 namespace sim {
 
 struct Packet;
 
-class IReceiver : public IRoutingDevice,
-                  public IProcessingDevice,
-                  public Identifiable {
+class IReceiver : public IRoutingDevice, public IProcessingDevice {
 public:
     virtual ~IReceiver() = default;
 };
@@ -19,13 +16,14 @@ public:
 class Receiver : public IReceiver,
                  public std::enable_shared_from_this<Receiver> {
 public:
-    Receiver();
+    Receiver(Id a_id);
     ~Receiver() = default;
 
     bool add_inlink(std::shared_ptr<ILink> link) final;
     bool add_outlink(std::shared_ptr<ILink> link) final;
     bool update_routing_table(std::shared_ptr<IRoutingDevice> dest,
-                              std::shared_ptr<ILink> link, size_t paths_count = 1) final;
+                              std::shared_ptr<ILink> link,
+                              size_t paths_count = 1) final;
     std::shared_ptr<ILink> next_inlink() final;
     std::shared_ptr<ILink> get_link_to_destination(
         std::shared_ptr<IRoutingDevice> dest) const final;
@@ -45,7 +43,6 @@ public:
 private:
     Time send_ack(Packet data_packet);
     std::unique_ptr<RoutingModule> m_router;
-    Id m_id;
 };
 
 }  // namespace sim
