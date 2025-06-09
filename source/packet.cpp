@@ -6,14 +6,17 @@
 #include "device/sender.hpp"
 
 namespace sim {
+
 Packet::Packet(PacketType a_type, Size a_size_byte, IFlow* a_flow,
-               Id a_source_id, Id a_dest_id, Time a_sent_time)
+               Id a_source_id, Id a_dest_id, Time a_sent_time,
+               bool a_ecn_capable_transport)
     : type(a_type),
       source_id(a_source_id),
       dest_id(a_dest_id),
       size_byte(a_size_byte),
       flow(a_flow),
-      sent_time(a_sent_time) {}
+      sent_time(a_sent_time),
+      ecn_capable_transport(a_ecn_capable_transport) {}
 
 bool Packet::operator==(const Packet& packet) const {
     return flow == packet.flow && source_id == packet.source_id &&
