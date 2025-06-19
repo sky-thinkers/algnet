@@ -24,7 +24,7 @@ jobs:
         continue-on-error: true
 
       - name: Generate new index.html
-        run: python3 .scripts/generate-root-html.py index.html
+        run: python3 .scripts/generate-root-html.py
 
       - name: Configure Git
         run: |
