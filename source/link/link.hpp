@@ -32,11 +32,6 @@ public:
      */
     void schedule_arrival(Packet packet) final;
 
-    /**
-     * Removes packet from the source egress queue.
-     */
-    void process_arrival(Packet packet) final;
-
     std::optional<Packet> get_packet() final;
 
     std::shared_ptr<IRoutingDevice> get_from() const final;
@@ -47,6 +42,11 @@ public:
     Id get_id() const final;
 
 private:
+    /**
+     * Removes packet from the source egress queue.
+     */
+    void process_arrival(Packet packet);
+
     Time get_transmission_time(const Packet& packet) const;
 
     Id m_id;
