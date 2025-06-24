@@ -12,7 +12,7 @@ public:
     virtual void operator()() = 0;
 
     Time get_time() const;
-    bool operator>(const Event &other) const { return m_time > other.m_time; }
+    bool operator>(const Event &other) const;
 
 protected:
     const Time m_time;
