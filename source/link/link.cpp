@@ -1,6 +1,5 @@
 #include "link/link.hpp"
 
-#include "event/arrive.hpp"
 #include "logger/logger.hpp"
 #include "metrics/metrics_collector.hpp"
 #include "scheduler.hpp"
@@ -27,6 +26,17 @@ Link::Link(Id a_id, std::weak_ptr<IRoutingDevice> a_from,
     } else if (a_speed_gbps == 0) {
         LOG_WARN("Passed zero link speed");
     }
+}
+
+Link::Arrive::Arrive(Time a_time, std::weak_ptr<Link> a_link, Packet a_packet)
+    : Event(a_time), m_link(a_link), m_paket(a_packet) {}
+
+void Link::Arrive::operator()() {
+    if (m_link.expired()) {
+        return;
+    }
+
+    m_link.lock()->process_arrival(m_paket);
 }
 
 Time Link::get_transmission_time(const Packet& packet) const {
