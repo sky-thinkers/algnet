@@ -2,8 +2,8 @@
 
 #include <queue>
 
-#include "event.hpp"
 #include "link/interfaces/i_link.hpp"
+#include "packet.hpp"
 
 namespace sim {
 

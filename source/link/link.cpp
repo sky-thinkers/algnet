@@ -1,5 +1,6 @@
 #include "link/link.hpp"
 
+#include "event/arrive.hpp"
 #include "logger/logger.hpp"
 #include "metrics/metrics_collector.hpp"
 #include "scheduler.hpp"

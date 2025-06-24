@@ -1,10 +1,10 @@
 #pragma once
 
-
 #include <queue>
 
 #include "device/interfaces/i_host.hpp"
 #include "flow/interfaces/i_flow.hpp"
+#include "packet.hpp"
 
 namespace sim {
 
