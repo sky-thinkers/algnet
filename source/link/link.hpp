@@ -4,11 +4,7 @@
 
 #include "event/event.hpp"
 #include "link/interfaces/i_link.hpp"
-<<<<<<< HEAD
-#include "packet_queue.hpp"
-=======
 #include "packet.hpp"
->>>>>>> events_and_link_refactoring
 
 namespace sim {
 
