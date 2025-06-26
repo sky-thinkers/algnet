@@ -10,16 +10,6 @@ namespace sim {
 
 class Link : public ILink, public std::enable_shared_from_this<Link> {
 public:
-    class Arrive : public Event {
-    public:
-        Arrive(Time a_time, std::weak_ptr<Link> a_link, Packet a_packet);
-        void operator()() final;
-
-    private:
-        std::weak_ptr<Link> m_link;
-        Packet m_paket;
-    };
-
     Link(Id a_id, std::weak_ptr<IRoutingDevice> a_from,
          std::weak_ptr<IRoutingDevice> a_to, std::uint32_t a_speed_gbps = 1,
          Time a_delay = 0, Size a_max_from_egress_buffer_size = 4096,
@@ -46,9 +36,17 @@ public:
     Id get_id() const final;
 
 private:
-    /**
-     * Removes packet from the source egress queue.
-     */
+    class Arrive : public Event {
+    public:
+        Arrive(Time a_time, std::weak_ptr<Link> a_link, Packet a_packet);
+        void operator()() final;
+
+    private:
+        std::weak_ptr<Link> m_link;
+        Packet m_paket;
+    };
+
+    // Removes packet from the source egress queue.
     void process_arrival(Packet packet);
 
     Time get_transmission_time(const Packet& packet) const;
