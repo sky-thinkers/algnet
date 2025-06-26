@@ -3,7 +3,7 @@
 #include "device/interfaces/i_switch.hpp"
 #include "device/scheduling_module.hpp"
 #include "ecn.hpp"
-#include "event.hpp"
+#include "event/process.hpp"
 
 namespace sim {
 

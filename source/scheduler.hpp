@@ -3,11 +3,10 @@
 #include <memory>
 #include <queue>
 
+#include "event/event.hpp"
 #include "types.hpp"
 
 namespace sim {
-
-class Event;
 
 struct EventComparator {
     bool operator()(const std::unique_ptr<Event>& lhs,

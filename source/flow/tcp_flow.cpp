@@ -2,7 +2,8 @@
 
 #include <spdlog/fmt/fmt.h>
 
-#include "event.hpp"
+#include "event/generate.hpp"
+#include "event/tcp_metric.hpp"
 #include "logger/logger.hpp"
 #include "metrics/metrics_collector.hpp"
 #include "scheduler.hpp"
