@@ -4,7 +4,11 @@
 
 #include "event/event.hpp"
 #include "link/interfaces/i_link.hpp"
+<<<<<<< HEAD
 #include "packet_queue.hpp"
+=======
+#include "packet.hpp"
+>>>>>>> events_and_link_refactoring
 
 namespace sim {
 
@@ -46,26 +50,10 @@ private:
         Packet m_paket;
     };
 
-    class Transmit : public Event {
-    public:
-        Transmit(Time a_time, std::weak_ptr<Link> a_link);
-        void operator()() final;
+    // Removes packet from the source egress queue.
+    void process_arrival(Packet packet);
 
-    private:
-        std::weak_ptr<Link> m_link;
-    };
-
-    // Head packet leaves source eggress queue
-    void transmit();
-
-    // Packet arrives to destination ingress queue
-    void arrive(Packet packet);
-
-    Time get_transmission_delay(const Packet& packet) const;
-
-    // Shedule Arrive and Transmit events for first packet from source eggress
-    // queue
-    void start_head_packet_sending();
+    Time get_transmission_time(const Packet& packet) const;
 
     Id m_id;
     std::weak_ptr<IRoutingDevice> m_from;

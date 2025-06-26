@@ -24,6 +24,31 @@ Link::Link(Id a_id, std::weak_ptr<IRoutingDevice> a_from,
     }
 }
 
+Link::Arrive::Arrive(Time a_time, std::weak_ptr<Link> a_link, Packet a_packet)
+    : Event(a_time), m_link(a_link), m_paket(a_packet) {}
+
+void Link::Arrive::operator()() {
+    if (m_link.expired()) {
+        return;
+    }
+
+    m_link.lock()->process_arrival(m_paket);
+}
+
+Time Link::get_transmission_time(const Packet& packet) const {
+    if (m_speed_gbps == 0) {
+        LOG_WARN("Passed zero link speed");
+        return 0;
+    }
+    const std::uint32_t byte_to_bit_multiplier = 8;
+
+    Size packet_size_bit = packet.size_byte * byte_to_bit_multiplier;
+    std::uint32_t transmission_speed_bit_ns = m_speed_gbps;
+    return (packet_size_bit + transmission_speed_bit_ns - 1) /
+               transmission_speed_bit_ns +
+           m_transmission_delay;
+};
+
 void Link::schedule_arrival(Packet packet) {
     if (m_to.expired()) {
         LOG_WARN("Destination device pointer is expired");
