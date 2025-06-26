@@ -56,11 +56,18 @@ private:
     std::weak_ptr<IRoutingDevice> m_to;
     std::uint32_t m_speed_gbps;
 
+    Size m_from_egress_queue_size;
+    Size m_max_from_egress_buffer_size;
+    Time m_arrival_time;
+
     Time m_transmission_delay;
 
     // Queue at the ingress port of the m_to device
-    PacketQueue m_from_eggress;
-    PacketQueue m_to_ingress;
+    std::queue<Packet> m_to_ingress;
+    // We keep track of m_to_ingress size in bytes
+    // to account for packet size variations
+    Size m_to_ingress_queue_size;
+    Size m_max_to_ingress_buffer_size;
 };
 
 }  // namespace sim
