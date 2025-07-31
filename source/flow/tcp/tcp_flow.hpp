@@ -66,12 +66,15 @@ public:
             }
             if (!m_cc.on_ack(rtt, m_avg_rtt, packet.congestion_experienced)) {
                 // No congestion
-                // TODO: get packet size from some other source than m_packet_size (m_data_size does not expand on flows with varying packet sizes)
+                // TODO: get packet size from some other source than
+                // m_packet_size (m_data_size does not expand on flows with
+                // varying packet sizes)
                 m_delivered_data_size += m_packet_size;
             }
 
             SpeedGbps delivery_rate =
-                (m_delivered_data_size - packet.delivered_data_size_at_origin) / rtt;
+                (m_delivered_data_size - packet.delivered_data_size_at_origin) /
+                rtt;
             MetricsCollector::get_instance().add_delivery_rate(
                 packet.flow->get_id(), current_time, delivery_rate);
 
@@ -87,12 +90,17 @@ public:
             // data packet delivered to destination device; send ack
             Packet ack(SizeByte(1), this, m_dest.lock()->get_id(),
                        m_src.lock()->get_id(), packet.sent_time,
-                       packet.delivered_data_size_at_origin, packet.ecn_capable_transport,
+                       packet.delivered_data_size_at_origin,
+                       packet.ecn_capable_transport,
                        packet.congestion_experienced);
             m_flag_manager.set_flag(ack, packet_type_label, PacketType::ACK);
             m_dest.lock()->enqueue_packet(ack);
         }
         send_packets();
+    }
+
+    SizeByte get_delivered_data_size() const final {
+        return m_delivered_data_size;
     }
 
     std::shared_ptr<IHost> get_sender() const final { return m_src.lock(); }

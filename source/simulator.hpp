@@ -2,6 +2,7 @@
 
 #include <spdlog/fmt/fmt.h>
 
+#include <map>
 #include <unordered_set>
 #include <variant>
 
@@ -10,8 +11,8 @@
 #include "event/start_flow.hpp"
 #include "event/stop.hpp"
 #include "flow/tcp/basic/bacic_flow.hpp"
-#include "flow/tcp/tahoe/tcp_tahoe_flow.hpp"
 #include "flow/tcp/swift/swift_flow.hpp"
+#include "flow/tcp/tahoe/tcp_tahoe_flow.hpp"
 #include "link/link.hpp"
 #include "utils/algorithms.hpp"
 #include "utils/validation.hpp"
@@ -107,6 +108,11 @@ public:
         }
     }
 
+    // returns summary in format [flow : size of delivered data]
+    std::unordered_set<std::shared_ptr<IFlow>> get_flows() const {
+        return m_flows;
+    }
+
 private:
     std::unordered_set<std::shared_ptr<IHost>> m_hosts;
     std::unordered_set<std::shared_ptr<ISwitch>> m_switches;
@@ -118,7 +124,8 @@ using BasicSimulator = Simulator<Host, Switch, BasicFlow, Link>;
 using TcpSimulator = Simulator<Host, Switch, TcpTahoeFlow, Link>;
 using TcpSwiftSimulator = Simulator<Host, Switch, TcpSwiftFlow, Link>;
 
-using SimulatorVariant = std::variant<BasicSimulator, TcpSimulator, TcpSwiftSimulator>;
+using SimulatorVariant =
+    std::variant<BasicSimulator, TcpSimulator, TcpSwiftSimulator>;
 
 SimulatorVariant create_simulator(std::string_view algorithm);
 
