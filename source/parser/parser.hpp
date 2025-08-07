@@ -58,7 +58,8 @@ private:
     }
 
     void process_hosts(const YAML::Node& hosts_node);
-    void process_switches(const YAML::Node& switches_node);
+    void process_switches(const YAML::Node& switches_node,
+                          const YAML::Node& packet_spraying_node);
 
     void process_links(const YAML::Node& links_node);
     void process_flows(const YAML::Node& flows_node);
