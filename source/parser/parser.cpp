@@ -7,6 +7,7 @@
 #include "parser/topology/host/host_parser.hpp"
 #include "parser/topology/link/link_parser.hpp"
 #include "parser/topology/switch/switch_parser.hpp"
+#include "preset_storage.hpp"
 
 namespace sim {
 
@@ -30,6 +31,8 @@ std::pair<Simulator, TimeNs> YamlParser::build_simulator_from_config(
         }
     };
 
+    YAML::Node topology_presets_node = topology_config["presets"];
+
     const YAML::Node packet_spraying_node = topology_config["packet-spraying"];
     if (!packet_spraying_node) {
         throw std::runtime_error(
@@ -49,7 +52,10 @@ std::pair<Simulator, TimeNs> YamlParser::build_simulator_from_config(
 
     parse_if_present(
         topology_config["links"],
-        [this](auto node) { return process_links(node); },
+        [this, &topology_presets_node](auto node) {
+            return process_links(node,
+                                 get_if_present(topology_presets_node, "link"));
+        },
         "No links specified in the topology config");
 
     parse_if_present(
@@ -92,13 +98,23 @@ void YamlParser::process_switches(const YAML::Node &swtiches_node,
         "Can not add switch.");
 }
 
-void YamlParser::process_links(const YAML::Node &links_node) {
+void YamlParser::process_links(const YAML::Node &links_node,
+                               const YAML::Node &link_presets_node) {
+    // Maps preset name to preset body
+    LinkPresets presets(link_presets_node, [](const YAML::Node &preset_node) {
+        LinkInitArgs args;
+        LinkParser::parse_to_args(preset_node, args);
+        return args;
+    });
     process_identifiables<ILink>(
         links_node,
         [this](std::shared_ptr<ILink> link) {
             return m_simulator.add_link(link);
         },
-        LinkParser::parse_i_link, "Can not add link.");
+        [&presets](const YAML::Node &key_node, const YAML::Node &value_node) {
+            return LinkParser::parse_i_link(key_node, value_node, presets);
+        },
+        "Can not add link.");
 }
 
 void YamlParser::process_flows(const YAML::Node &flows_node) {
