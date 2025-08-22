@@ -67,8 +67,8 @@ Packet TcpFlow::create_packet(PacketNum packet_num) {
 
 void TcpFlow::send_packet() {
     if (get_sending_quota() == 0) {
-        LOG_WARN(fmt::format("No sending quota for flow {}; packet not sent",
-                             m_id));
+        LOG_WARN(
+            fmt::format("No sending quota for flow {}; packet not sent", m_id));
         return;
     }
     Packet packet = create_packet(m_next_packet_num++);
@@ -243,7 +243,7 @@ TimeNs TcpFlow::get_max_timeout() const {
     TimeNs mean = m_rtt_statistics.get_mean();
     TimeNs std = m_rtt_statistics.get_std();
     if (mean == TimeNs(0)) {
-        return TimeNs(std::numeric_limits<long double>::max());
+        return TimeNs(std::numeric_limits<double>::max());
     }
     return mean * 2 + std * 4;
 }
@@ -252,7 +252,7 @@ void TcpFlow::send_packet_now(Packet packet) {
     TimeNs current_time = Scheduler::get_instance().get_current_time();
 
     TimeNs max_timeout = get_max_timeout();
-    if (max_timeout != TimeNs(std::numeric_limits<long double>::max())) {
+    if (max_timeout != TimeNs(std::numeric_limits<double>::max())) {
         Scheduler::get_instance().add<Timeout>(current_time + max_timeout,
                                                this->shared_from_this(),
                                                packet.packet_num);
