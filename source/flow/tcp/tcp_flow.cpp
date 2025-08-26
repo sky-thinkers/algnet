@@ -30,11 +30,17 @@ TcpFlow::TcpFlow(Id a_id, std::shared_ptr<IConnection> a_conn,
     if (m_dest.lock() == nullptr) {
         throw std::invalid_argument("Receiver for TcpFlow is nullptr");
     }
+    m_init_time = Scheduler::get_instance().get_current_time();
     initialize_flag_manager();
 }
 
 SizeByte TcpFlow::get_delivered_data_size() const {
     return m_delivered_data_size;
+}
+
+TimeNs TcpFlow::get_fct() const {
+    TimeNs now = Scheduler::get_instance().get_current_time();
+    return now - m_init_time;
 }
 
 std::shared_ptr<IHost> TcpFlow::get_sender() const { return m_src.lock(); }
@@ -94,6 +100,7 @@ Packet TcpFlow::create_ack(Packet data) {
     ack.dest_id = m_src.lock()->get_id();
     ack.size = SizeByte(1);
     ack.flow = this;
+    ack.generated_time = data.generated_time;
     ack.sent_time = data.sent_time;
     ack.delivered_data_size_at_origin = data.delivered_data_size_at_origin;
     ack.ttl = M_MAX_TTL;
@@ -198,7 +205,7 @@ void TcpFlow::update(Packet packet) {
 
         SpeedGbps delivery_rate =
             (m_delivered_data_size - packet.delivered_data_size_at_origin) /
-            rtt;
+            (current_time - packet.generated_time);
         MetricsCollector::get_instance().add_delivery_rate(
             packet.flow->get_id(), current_time, delivery_rate);
 
