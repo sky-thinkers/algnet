@@ -16,7 +16,6 @@ public:
     SizeByte get_sending_quota() const final;
     TimeNs get_last_rtt() const final;
     void send_data(SizeByte data) final;
-    std::shared_ptr<sim::IConnection> get_conn() const final;
     virtual SizeByte get_delivered_data_size() const final;
     virtual TimeNs get_fct() const final;
 
