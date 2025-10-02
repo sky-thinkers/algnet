@@ -2,6 +2,7 @@
 
 #include <algorithm>
 
+#include "hashers/ecmp_hasher.hpp"
 #include "link/i_link.hpp"
 #include "logger/logger.hpp"
 #include "utils/validation.hpp"
@@ -90,12 +91,12 @@ std::shared_ptr<ILink> RoutingModule::get_link_to_destination(
         total_weight += weight;
     }
 
-    int random_value = m_hasher->get_hash(packet) % total_weight;
+    int hash = m_hasher->get_hash(packet) % total_weight;
 
     int cumulative_weight = 0;
     for (const auto& [link, weight] : link_map) {
         cumulative_weight += weight;
-        if (random_value < cumulative_weight) {
+        if (hash < cumulative_weight) {
             return link.lock();
         }
     }

@@ -22,6 +22,10 @@ void FlowMock::send_data(SizeByte data) {
 SizeByte FlowMock::get_delivered_data_size() const { return SizeByte(0); }
 TimeNs FlowMock::get_fct() const { return TimeNs(0); }
 
+const sim::BaseFlagManager& FlowMock::get_flag_manager() const {
+    return m_flag_manager;
+}
+
 std::shared_ptr<sim::IHost> FlowMock::get_sender() const { return nullptr; }
 std::shared_ptr<sim::IHost> FlowMock::get_receiver() const {
     return m_receiver.lock();
