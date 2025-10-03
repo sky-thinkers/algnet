@@ -4,6 +4,9 @@
 #include <iostream>
 #include <string>
 #include <type_traits>
+#ifdef _MSC_VER
+#include <concepts>
+#endif
 
 struct Bit {
     static constexpr uint64_t to_bit_multiplier = 1;
