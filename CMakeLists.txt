@@ -20,10 +20,17 @@ file(GLOB_RECURSE src "source/*.cpp")
 list(REMOVE_ITEM src "${CMAKE_CURRENT_SOURCE_DIR}/source/main.cpp")
 file(GLOB_RECURSE tests "test/*.cpp")
 
+# set(Boost_USE_STATIC_LIBS OFF)
+# set(Boost_USE_MULTITHREADED OFF)
+# set(Boost_USE_STATIC_RUNTIME OFF)
+# set(BOOST_ENABLE_CMAKE ON)
+find_package(Boost REQUIRED COMPONENTS)
+
 include_directories(
     ${CMAKE_SOURCE_DIR}/source/
     ${CMAKE_SOURCE_DIR}/external/spdlog/include/
     ${CMAKE_SOURCE_DIR}/external/cxxopts/include/
+    ${Boost_INCLUDE_DIRS}
 )
 
 add_subdirectory(${CMAKE_SOURCE_DIR}/external/yaml-cpp/)
