@@ -33,7 +33,7 @@ add_subdirectory(${CMAKE_SOURCE_DIR}/external/userver)
 if (BUILD_PROJECT)
     set(TARGET_NAME "${PROJECT_NAME}")
     add_executable(${TARGET_NAME} ${src} source/main.cpp)
-    target_link_libraries(${TARGET_NAME} yaml-cpp matplot)
+    target_link_libraries(${TARGET_NAME} yaml-cpp matplot userver-universal)
     target_compile_options(${TARGET_NAME} PRIVATE -Wall -Werror -Wextra)
 
     if (DEFINED LOG_LEVEL)
