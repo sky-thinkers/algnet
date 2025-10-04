@@ -34,6 +34,9 @@ jobs:
     - name: Update submodules
       run: git submodule update --init --recursive
 
+    - name: Install userver dependencies
+      run: sudo apt install --allow-downgrades -y $(cat third_party/userver/scripts/docs/en/deps/ubuntu-24.04.md | tr '\n' ' ')
+
     - name: Configure CMake for building project
       run: cmake -B build -DCMAKE_BUILD_TYPE=Release -DBUILD_PROJECT=ON -DBUILD_TESTS=OFF
 
@@ -89,7 +92,7 @@ jobs:
     - name: Calculate deploy destination dir
       run: |
         DEPLOY_DIR=$(python3 scripts/calculate_deploy_dir.py -c github_context.json);
-        echo "DEPLOY_DIR=${DEPLOY_DIR}/${{env.METRICS_ARTIFACT_DIR}}" >> $GITHUB_ENV;     
+        echo "DEPLOY_DIR=${DEPLOY_DIR}/${{env.METRICS_ARTIFACT_DIR}}" >> $GITHUB_ENV;
 
     - name: Deploy to GitHub Pages
       if: ${{env.DEPLOY_DIR}} != ''
@@ -126,7 +129,7 @@ jobs:
     needs: build
     steps:
     - uses: actions/checkout@v4
-    
+
     - name: Download nons executable
       uses: actions/download-artifact@v4
       with:
@@ -134,7 +137,7 @@ jobs:
 
     - name: Add executable flag
       run: chmod +x ${{env.EXECUTABLE_NAME}}
-    
+
     - name: Update PYTHONPOATH
       run: echo "PYTHONPATH=${{ github.workspace }}/scripts" >> $GITHUB_ENV
 

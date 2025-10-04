@@ -28,6 +28,7 @@ include_directories(
 
 add_subdirectory(${CMAKE_SOURCE_DIR}/external/yaml-cpp/)
 add_subdirectory(${CMAKE_SOURCE_DIR}/external/matplotplusplus/)
+add_subdirectory(${CMAKE_SOURCE_DIR}/external/userver)
 
 if (BUILD_PROJECT)
     set(TARGET_NAME "${PROJECT_NAME}")
@@ -49,7 +50,7 @@ if(BUILD_TESTS)
     add_subdirectory(external/googletest)
     set(TEST_NAME "test_nons")
     add_executable(${TEST_NAME} ${src} ${tests})
-    
+
     target_include_directories(${TEST_NAME} PRIVATE ${CMAKE_SOURCE_DIR}/external/yaml-cpp/include)
     target_include_directories(${TEST_NAME} PUBLIC "source")
 
