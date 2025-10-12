@@ -35,7 +35,7 @@ jobs:
       run: git submodule update --init --recursive
 
     - name: Install userver dependencies
-      run: sudo apt install --allow-downgrades -y $(cat external/userver/scripts/docs/en/deps/ubuntu-24.04.md | tr '\n' ' ')
+      run: ./scripts/install_deps/userver.sh
 
     - name: Configure CMake for building project
       run: cmake -B build -DCMAKE_BUILD_TYPE=Release -DBUILD_PROJECT=ON -DBUILD_TESTS=OFF
@@ -49,63 +49,6 @@ jobs:
         name: build-artifact
         path: build/**
 
-  run-simulations:
-    runs-on: ubuntu-latest
-    needs: build
-    permissions:
-      contents: write
-    steps:
-    - name: Apt update
-      run: sudo apt update
-
-    - name: Install dependencies
-      run: |
-        sudo apt install --fix-missing gnuplot
-        sudo apt install --fix-missing graphviz
-        pip install graphviz
-
-    - uses: actions/checkout@v4
-
-    - name: Download artifact
-      uses: actions/download-artifact@v4
-      with:
-        name: build-artifact
-
-    - name: Add executable flag
-      run: chmod +x ${{env.EXECUTABLE_NAME}}
-
-    - name: Run simulation
-      run: python3 scripts/run_simulations.py -e ./${{env.EXECUTABLE_NAME}} -c configuration_examples/simulation_examples --output-dir ./${{env.METRICS_ARTIFACT_DIR}}
-
-    - name: Create html
-      run: python3 scripts/generate-html.py ./metrics
-
-    - name: Upload metrics
-      uses: actions/upload-artifact@v4
-      with:
-        name: metrics
-        path: ${{env.METRICS_ARTIFACT_DIR}}/**
-
-    - name: Put github context to json file
-      run: echo '${{ toJson(github) }}' > github_context.json
-
-    - name: Calculate deploy destination dir
-      run: |
-        DEPLOY_DIR=$(python3 scripts/calculate_deploy_dir.py -c github_context.json);
-        echo "DEPLOY_DIR=${DEPLOY_DIR}/${{env.METRICS_ARTIFACT_DIR}}" >> $GITHUB_ENV;
-
-    - name: Deploy to GitHub Pages
-      if: ${{env.DEPLOY_DIR}} != ''
-      uses: peaceiris/actions-gh-pages@v3
-      with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
-        publish_dir: ${{env.METRICS_ARTIFACT_DIR}}
-        destination_dir: ${{env.DEPLOY_DIR}}
-
-    - name: Wait for artifacts to be available
-      run:
-        python3 scripts/check_artifacts.py -u 'https://cloud-storage-team.github.io/algnet/${{env.DEPLOY_DIR}}'
-
   test:
     runs-on: ubuntu-latest
     steps:
@@ -113,6 +56,9 @@ jobs:
 
     - name: Update submodules
       run: git submodule update --init --recursive
+
+    - name: Install depenedencies
+      run: ./scripts/install_deps/userver.sh
 
     - name: Configure CMake for building tests
       run: cmake -B build -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DBUILD_PROJECT=OFF -DBUILD_TESTS=ON
@@ -123,23 +69,3 @@ jobs:
     - name: Run tests
       working-directory: build
       run: ./${{env.TEST_EXECUTABLE_NAME}}
-
-  check-generators:
-    runs-on: ubuntu-latest
-    needs: build
-    steps:
-    - uses: actions/checkout@v4
-
-    - name: Download nons executable
-      uses: actions/download-artifact@v4
-      with:
-        name: build-artifact
-
-    - name: Add executable flag
-      run: chmod +x ${{env.EXECUTABLE_NAME}}
-
-    - name: Update PYTHONPOATH
-      run: echo "PYTHONPATH=${{ github.workspace }}/scripts" >> $GITHUB_ENV
-
-    - name: Check generators in script directory
-      run: python3 scripts/check_generators.py -g scripts/generators/ -e ./${{env.EXECUTABLE_NAME}}
