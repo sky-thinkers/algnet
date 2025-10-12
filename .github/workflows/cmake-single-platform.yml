@@ -35,7 +35,7 @@ jobs:
       run: git submodule update --init --recursive
 
     - name: Install userver dependencies
-      run: ./scripts/install_deps/userver.sh
+      run: sh ./scripts/install_deps/userver.sh
 
     - name: Configure CMake for building project
       run: cmake -B build -DCMAKE_BUILD_TYPE=Release -DBUILD_PROJECT=ON -DBUILD_TESTS=OFF
@@ -58,7 +58,7 @@ jobs:
       run: git submodule update --init --recursive
 
     - name: Install depenedencies
-      run: ./scripts/install_deps/userver.sh
+      run: sh ./scripts/install_deps/userver.sh
 
     - name: Configure CMake for building tests
       run: cmake -B build -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DBUILD_PROJECT=OFF -DBUILD_TESTS=ON
