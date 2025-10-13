@@ -43,19 +43,19 @@ jobs:
         restore-keys: ${{runner.os}}-cmake-build-app
 
     - name: Print build dir info
-      run: tree ${{github.workspace}}/${{ENV.BUILD_DIR}}
+      run: tree ${{github.workspace}}/${{ENV.BUILD_DIR}} || true
 
     - name: Configure CMake for building project
       run: cmake -B ${{env.BUILD_DIR}} -DCMAKE_BUILD_TYPE=Release -DBUILD_PROJECT=ON -DBUILD_TESTS=OFF
 
     - name: Print build dir info
-      run: tree ${{github.workspace}}/${{ENV.BUILD_DIR}}
+      run: tree ${{github.workspace}}/${{ENV.BUILD_DIR}} || true
 
     - name: Build project
       run: cmake --build ${{env.BUILD_DIR}} --config Debug -j $(nproc)
 
     - name: Print build dir info
-      run: tree ${{github.workspace}}/${{ENV.BUILD_DIR}}
+      run: tree ${{github.workspace}}/${{ENV.BUILD_DIR}} || true
 
     - name: Upload artifact
       uses: actions/upload-artifact@v4
