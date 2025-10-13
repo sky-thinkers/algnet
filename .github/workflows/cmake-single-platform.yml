@@ -39,8 +39,8 @@ jobs:
       uses: actions/cache@v4
       with:
         path: ${{env.BUILD_DIR}}
-        key: ${{runner.os}}-cmake-build-${{ hashFiles('**/CMakeLists.txt') }}
-        restore-keys: ${{runner.os}}-cmake-build
+        key: ${{runner.os}}-cmake-build-app${{ hashFiles('**/CMakeLists.txt') }}
+        restore-keys: ${{runner.os}}-cmake-build-app
 
     - name: Configure CMake for building project
       run: cmake -B build -DCMAKE_BUILD_TYPE=Release -DBUILD_PROJECT=ON -DBUILD_TESTS=OFF
@@ -118,6 +118,13 @@ jobs:
 
     - name: Update submodules
       run: git submodule update --init --recursive
+
+    - name: Restore cache
+      uses: actions/cache@v4
+      with:
+        path: ${{env.BUILD_DIR}}
+        key: ${{runner.os}}-cmake-build-tests${{ hashFiles('**/CMakeLists.txt') }}
+        restore-keys: ${{runner.os}}-cmake-build-tests
 
     - name: Configure CMake for building tests
       run: cmake -B build -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DBUILD_PROJECT=OFF -DBUILD_TESTS=ON
