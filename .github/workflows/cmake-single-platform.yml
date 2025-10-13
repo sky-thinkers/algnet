@@ -39,14 +39,17 @@ jobs:
       uses: actions/cache@v4
       with:
         path: ${{env.BUILD_DIR}}
-        key: ${{runner.os}}-cmake-build-app${{ hashFiles('**/CMakeLists.txt') }}
+        key: ${{runner.os}}-cmake-build-app-${{ hashFiles('**/CMakeLists.txt') }}
         restore-keys: ${{runner.os}}-cmake-build-app
 
     - name: Configure CMake for building project
       run: cmake -B ${{env.BUILD_DIR}} -DCMAKE_BUILD_TYPE=Release -DBUILD_PROJECT=ON -DBUILD_TESTS=OFF
 
     - name: Build project
-      run: cmake --build build --config Debug -j $(nproc)
+      run: cmake --build ${{env.BUILD_DIR}} --config Debug -j $(nproc)
+
+    - name: Print build dir info
+      run: ls -la ${{ env.BUILD_DIR }} && du -sh ${{ env.BUILD_DIR }} || true
 
     - name: Upload artifact
       uses: actions/upload-artifact@v4
@@ -123,7 +126,7 @@ jobs:
       uses: actions/cache@v4
       with:
         path: ${{env.BUILD_DIR}}
-        key: ${{runner.os}}-cmake-build-tests${{ hashFiles('**/CMakeLists.txt') }}
+        key: ${{runner.os}}-cmake-build-tests-${{ hashFiles('**/CMakeLists.txt') }}
         restore-keys: ${{runner.os}}-cmake-build-tests
 
     - name: Configure CMake for building tests
@@ -135,6 +138,9 @@ jobs:
     - name: Run tests
       working-directory: build
       run: ./${{env.TEST_EXECUTABLE_NAME}}
+
+    - name: Print build dir info
+      run: ls -la ${{env.BUILD_DIR}} && du -sh ${{ env.BUILD_DIR }} || true
 
   check-generators:
     runs-on: ubuntu-latest
