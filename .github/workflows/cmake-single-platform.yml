@@ -45,14 +45,14 @@ jobs:
     - name: Configure CMake for building project
       run: cmake -B ${{env.BUILD_DIR}} -DCMAKE_BUILD_TYPE=Release -DBUILD_PROJECT=ON -DBUILD_TESTS=OFF
 
+    - name: Build project
+      run: cmake --build build --config Debug -j $(nproc)
+
     - name: Save cache
       uses: actions/cache/save@v4
       with:
         path: ${{env.BUILD_DIR}}
         key: ${{runner.os}}-cmake-build-app${{ hashFiles('**/CMakeLists.txt') }}
-
-    - name: Build project
-      run: cmake --build build --config Debug -j $(nproc)
 
     - name: Upload artifact
       uses: actions/upload-artifact@v4
@@ -135,14 +135,14 @@ jobs:
     - name: Configure CMake for building tests
       run: cmake -B ${{env.BUILD_DIR}} -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DBUILD_PROJECT=OFF -DBUILD_TESTS=ON
 
+    - name: Build tests
+      run: cmake --build build --config Debug -j $(nproc)
+
     - name: Save cache
       uses: actions/cache/save@v4
       with:
         path: ${{env.BUILD_DIR}}
         key: ${{runner.os}}-cmake-build-tests${{ hashFiles('**/CMakeLists.txt') }}
-
-    - name: Build tests
-      run: cmake --build build --config Debug -j $(nproc)
 
     - name: Run tests
       working-directory: build
