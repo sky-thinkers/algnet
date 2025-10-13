@@ -38,7 +38,7 @@ jobs:
     - name: Restore cache
       uses: actions/cache@v4
       with:
-        path: ${{env.BUILD_DIR}}
+        path: ${{github.workspace}}/${{env.BUILD_DIR}}
         key: ${{runner.os}}-cmake-build-app-${{ hashFiles('**/*.hpp', '**/*.h', '**/*.cpp', '**/*.cc') }}
         restore-keys: ${{runner.os}}-cmake-build-app
 
@@ -131,7 +131,7 @@ jobs:
     - name: Restore cache
       uses: actions/cache@v4
       with:
-        path: ${{env.BUILD_DIR}}
+        path: ${{github.workspace}}/${{env.BUILD_DIR}}
         key: ${{runner.os}}-cmake-build-tests-${{ hashFiles('**/*.hpp', '**/*.h', '**/*.cpp', '**/*.cc') }}
         restore-keys: ${{runner.os}}-cmake-build-tests
 
