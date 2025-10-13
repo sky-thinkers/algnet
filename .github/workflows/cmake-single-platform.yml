@@ -48,12 +48,6 @@ jobs:
     - name: Build project
       run: cmake --build build --config Debug -j $(nproc)
 
-    - name: Save cache
-      uses: actions/cache/save@v4
-      with:
-        path: ${{env.BUILD_DIR}}
-        key: ${{runner.os}}-cmake-build-app${{ hashFiles('**/CMakeLists.txt') }}
-
     - name: Upload artifact
       uses: actions/upload-artifact@v4
       with:
@@ -137,12 +131,6 @@ jobs:
 
     - name: Build tests
       run: cmake --build build --config Debug -j $(nproc)
-
-    - name: Save cache
-      uses: actions/cache/save@v4
-      with:
-        path: ${{env.BUILD_DIR}}
-        key: ${{runner.os}}-cmake-build-tests${{ hashFiles('**/CMakeLists.txt') }}
 
     - name: Run tests
       working-directory: build
