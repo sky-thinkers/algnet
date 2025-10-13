@@ -42,6 +42,9 @@ jobs:
         key: ${{runner.os}}-cmake-build-app-${{ hashFiles('**/CMakeLists.txt') }}
         restore-keys: ${{runner.os}}-cmake-build-app
 
+    - name: Print build dir info
+      run: ls -la ${{ env.BUILD_DIR }} && du -sh ${{ env.BUILD_DIR }} || true
+
     - name: Configure CMake for building project
       run: cmake -B ${{env.BUILD_DIR}} -DCMAKE_BUILD_TYPE=Release -DBUILD_PROJECT=ON -DBUILD_TESTS=OFF
 
@@ -110,9 +113,9 @@ jobs:
         publish_dir: ${{env.METRICS_ARTIFACT_DIR}}
         destination_dir: ${{env.DEPLOY_DIR}}
 
-    - name: Wait for artifacts to be available
-      run:
-        python3 scripts/check_artifacts.py -u 'https://cloud-storage-team.github.io/algnet/${{env.DEPLOY_DIR}}'
+    # - name: Wait for artifacts to be available
+    #   run:
+    #     python3 scripts/check_artifacts.py -u 'https://cloud-storage-team.github.io/algnet/${{env.DEPLOY_DIR}}'
 
   test:
     runs-on: ubuntu-latest
@@ -128,6 +131,9 @@ jobs:
         path: ${{env.BUILD_DIR}}
         key: ${{runner.os}}-cmake-build-tests-${{ hashFiles('**/CMakeLists.txt') }}
         restore-keys: ${{runner.os}}-cmake-build-tests
+
+    - name: Print build dir info
+      run: ls -la ${{ env.BUILD_DIR }} && du -sh ${{ env.BUILD_DIR }} || true
 
     - name: Configure CMake for building tests
       run: cmake -B ${{env.BUILD_DIR}} -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DBUILD_PROJECT=OFF -DBUILD_TESTS=ON
