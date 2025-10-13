@@ -1,0 +1,6 @@
+Conn id, Flow id, Throughput (Gbps)
+conn1, flow1_conn1, 21.0969
+conn2, flow1_conn2, 20.4917
+conn3, flow1_conn3, 19.6848
+conn4, flow1_conn4, 21.7862
+conn5, flow1_conn5, 24.6303
