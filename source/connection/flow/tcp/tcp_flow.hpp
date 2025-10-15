@@ -75,6 +75,8 @@ private:
     TimeNs m_init_time;
     TimeNs m_last_ack_arrive_time;
 
+    std::optional<TimeNs> m_last_send_time;
+
     SizeByte m_packet_size;
     bool m_ecn_capable;
 
