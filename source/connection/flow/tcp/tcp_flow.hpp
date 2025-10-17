@@ -21,9 +21,12 @@ public:
     void update(Packet packet) final;
     void send_data(SizeByte data) final;
 
-    SizeByte get_sending_quota() const;
+    SizeByte get_packet_size() const final;
+    SizeByte get_sending_quota() const final;
     std::optional<TimeNs> get_last_rtt() const final;
     SizeByte get_delivered_data_size() const final;
+    SizeByte get_sent_data_size() const final;
+    uint32_t retransmit_count() const final;
     const BaseFlagManager& get_flag_manager() const final;
     // Returns time elapced from flow start (firsrt call of send_packet)
     // to last update call
@@ -84,9 +87,11 @@ private:
     TimeNs m_max_rto;
     // is in STEADY state (after first ACK with valid RTT)
     bool m_rto_steady;
+    std::uint32_t m_retransmit_count;
 
     std::uint32_t m_packets_in_flight;
     SizeByte m_delivered_data_size;
+    SizeByte m_sent_data_size;
     PacketNum m_next_packet_num;
 
     // Contains numbers of all delivered acks
