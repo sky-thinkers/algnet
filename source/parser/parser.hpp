@@ -23,18 +23,21 @@ private:
     template <typename T>
     void process_identifiables(
         const ConfigNode& node,
-        std::function<bool(std::shared_ptr<T>)> add_func,
+        std::function<Simulator::AddResult(std::shared_ptr<T>)> add_func,
         std::function<std::shared_ptr<T>(const ConfigNode&)> parse_func,
         const std::string& message) {
+        (void)message;
         static_assert(std::is_base_of_v<Identifiable, T>,
                       "T must be Identifiable");
 
         for (auto it = node.begin(); it != node.end(); ++it) {
             std::shared_ptr<T> ptr = parse_func(*it);
 
-            if (!add_func(ptr)) {
-                throw std::runtime_error(message +
-                                         " ID: " + ptr.get()->get_id());
+            if (auto result = add_func(ptr);
+                result != Simulator::AddResult::OK) {
+                throw std::runtime_error(fmt::format(
+                    "{}; Id: {}", Simulator::add_result_to_string(result),
+                    ptr->get_id()));
             }
         }
     }

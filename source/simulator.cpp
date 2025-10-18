@@ -2,100 +2,32 @@
 
 namespace sim {
 
-bool Simulator::add_host(std::shared_ptr<IHost> host) {
-    if (host == nullptr) {
-        return false;
-    }
-    if (!IdentifierFactory::get_instance().add_object(host)) {
-        return false;
-    }
-    if (!m_hosts.insert(host).second) {
-        LOG_ERROR(
-            fmt::format("Host with id {} added to IdentiferFactory, but "
-                        "already in hosts set",
-                        host->get_id()));
-        if (!IdentifierFactory::get_instance().delete_object(host)) {
-            LOG_ERROR(
-                fmt::format("Impossible sittuation: host with id {} added to "
-                            "IdentifierFactory, but can not be deleted",
-                            host->get_id()));
-        }
-        return false;
-    }
-    return true;
+Simulator::Simulator() : m_state(State::BEFORE_SIMULATION_START) {}
+
+Simulator::AddResult Simulator::add_host(std::shared_ptr<IHost> host) {
+    return add_object(host, m_hosts);
 }
 
-bool Simulator::add_switch(std::shared_ptr<ISwitch> switch_device) {
-    if (switch_device == nullptr) {
-        return false;
-    }
-    if (!IdentifierFactory::get_instance().add_object(switch_device)) {
-        return false;
-    }
-    if (!m_switches.insert(switch_device).second) {
-        LOG_ERROR(
-            fmt::format("Switch with id {} added to IdentiferFactory, but "
-                        "already in switches set",
-                        switch_device->get_id()));
-        if (!IdentifierFactory::get_instance().delete_object(switch_device)) {
-            LOG_ERROR(
-                fmt::format("Impossible sittuation: switch with id {} added to "
-                            "IdentifierFactory, but can not be deleted",
-                            switch_device->get_id()));
-        }
-        return false;
-    }
-    return true;
+Simulator::AddResult Simulator::add_switch(std::shared_ptr<ISwitch> switch_device) {
+    return add_object(switch_device, m_switches);
 }
 
-bool Simulator::add_connection(std::shared_ptr<IConnection> connection) {
-    if (connection == nullptr) {
-        return false;
-    }
-    if (!IdentifierFactory::get_instance().add_object(connection)) {
-        return false;
-    }
-    if (!m_connections.insert(connection).second) {
-        LOG_ERROR(
-            fmt::format("Connection with id {} added to IdentiferFactory, but "
-                        "already in connections set",
-                        connection->get_id()));
-        if (!IdentifierFactory::get_instance().delete_object(connection)) {
-            LOG_ERROR(fmt::format(
-                "Impossible sittuation: connection with id {} added to "
-                "IdentifierFactory, but can not be deleted",
-                connection->get_id()));
-        }
-        return false;
-    }
-    return true;
+Simulator::AddResult Simulator::add_connection(std::shared_ptr<IConnection> connection) {
+    return add_object(connection, m_connections);
 }
 
-bool Simulator::add_link(std::shared_ptr<ILink> link) {
+Simulator::AddResult Simulator::add_link(std::shared_ptr<ILink> link) {
     if (!is_valid_link(link)) {
-        return false;
+        return AddResult::ERROR_INCORRECT_OBJECT;
     }
-    if (!IdentifierFactory::get_instance().add_object(link)) {
-        return false;
-    }
-    if (!m_links.insert(link).second) {
-        LOG_ERROR(
-            fmt::format("Link with id {} added to IdentiferFactory, but "
-                        "already in links set",
-                        link->get_id()));
-        if (!IdentifierFactory::get_instance().delete_object(link)) {
-            LOG_ERROR(
-                fmt::format("Impossible sittuation: link with id {} added to "
-                            "IdentifierFactory, but can not be deleted",
-                            link->get_id()));
-        }
-        return false;
+    if (AddResult result = add_object(link, m_links); result != AddResult::OK) {
+        return result;
     }
     auto a_from = link->get_from();
     auto a_to = link->get_to();
     a_from->add_outlink(link);
     a_to->add_inlink(link);
-    return true;
+    return AddResult::OK;
 }
 
 void Simulator::set_scenario(Scenario&& scenario) {
@@ -141,8 +73,10 @@ void Simulator::start() {
 
     m_scenario.start();
 
+    m_state = State::SIMULATION_IN_PROGRESS;
     while (Scheduler::get_instance().tick()) {
     }
+    m_state = State::SIMULATION_ENDED;
 }
 
 std::unordered_set<std::shared_ptr<IConnection>> Simulator::get_connections()
