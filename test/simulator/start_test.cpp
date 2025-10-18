@@ -25,10 +25,8 @@ std::shared_ptr<sim::TcpFlow> add_connection_with_single_flow(
 
     connection->add_flow(flow);
 
-    if (auto result = sim.add_connection(connection);
-        result != sim::Simulator::AddResult::OK) {
-        LOG_ERROR(fmt::format("Can not add connection: {}",
-                              sim::Simulator::add_result_to_string(result)));
+    if (auto result = sim.add_connection(connection); !result.has_value()) {
+        LOG_ERROR(fmt::format("Can not add connection: {}", result.error()));
         return nullptr;
     }
     return flow;
@@ -47,12 +45,12 @@ TEST_F(Start, TrivialTopology) {
     auto swtch = std::make_shared<sim::Switch>("switch");
     auto receiver = std::make_shared<sim::Host>("receiver");
 
-    ASSERT_EQ(sim.add_host(sender), sim::Simulator::AddResult::OK);
-    ASSERT_EQ(sim.add_switch(swtch), sim::Simulator::AddResult::OK);
-    ASSERT_EQ(sim.add_host(receiver), sim::Simulator::AddResult::OK);
+    EXPECT_HAS_VALUE(sim.add_host(sender));
+    EXPECT_HAS_VALUE(sim.add_switch(swtch));
+    EXPECT_HAS_VALUE(sim.add_host(receiver));
 
-    ASSERT_EQ(add_two_way_links(sim, {{sender, swtch}, {swtch, receiver}}),
-              sim::Simulator::AddResult::OK);
+    EXPECT_HAS_VALUE(
+        add_two_way_links(sim, {{sender, swtch}, {swtch, receiver}}));
 
     constexpr SizeByte packet_size(1024);
     constexpr SizeByte data_to_send = SizeByte(1024);
@@ -84,19 +82,17 @@ TEST_F(Start, ThreeToOneTopology) {
 
     auto swtch = std::make_shared<sim::Switch>("switch");
     auto receiver = std::make_shared<sim::Host>("receiver");
-    ASSERT_EQ(sim.add_switch(swtch), sim::Simulator::AddResult::OK);
-    ASSERT_EQ(sim.add_host(receiver), sim::Simulator::AddResult::OK);
+    EXPECT_HAS_VALUE(sim.add_switch(swtch));
+    EXPECT_HAS_VALUE(sim.add_host(receiver));
 
     std::vector<std::shared_ptr<sim::Host>> senders;
     for (int i = 1; i <= 3; ++i) {
         auto s = std::make_shared<sim::Host>("sender" + std::to_string(i));
-        ASSERT_EQ(sim.add_host(s), sim::Simulator::AddResult::OK);
+        EXPECT_HAS_VALUE(sim.add_host(s));
         senders.push_back(s);
-        ASSERT_EQ(add_two_way_links(sim, {{s, swtch}}),
-                  sim::Simulator::AddResult::OK);
+        EXPECT_HAS_VALUE(add_two_way_links(sim, {{s, swtch}}));
     }
-    ASSERT_EQ(add_two_way_links(sim, {{swtch, receiver}}),
-              sim::Simulator::AddResult::OK);
+    EXPECT_HAS_VALUE(add_two_way_links(sim, {{swtch, receiver}}));
 
     const SizeByte packet_size{10};
 

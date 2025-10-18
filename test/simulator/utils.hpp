@@ -1,5 +1,6 @@
 #pragma once
 
+#include <expected>
 #include <initializer_list>
 #include <memory>
 #include <utility>
@@ -16,5 +17,10 @@ using two_way_link_t =
 
 bool check_reachability(std::shared_ptr<sim::IDevice> src_device,
                         sim::Packet packet_to_dest);
+
+template <typename T>
+auto inline EXPECT_HAS_VALUE(std::expected<T, std::string> expect) {
+    ASSERT_TRUE(expect.has_value()) << expect.error();
+}
 
 }  // namespace test

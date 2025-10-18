@@ -33,11 +33,9 @@ private:
         for (auto it = node.begin(); it != node.end(); ++it) {
             std::shared_ptr<T> ptr = parse_func(*it);
 
-            if (auto result = add_func(ptr);
-                result != Simulator::AddResult::OK) {
-                throw std::runtime_error(fmt::format(
-                    "{}; Id: {}", Simulator::add_result_to_string(result),
-                    ptr->get_id()));
+            if (auto result = add_func(ptr); !result.has_value()) {
+                throw std::runtime_error(
+                    fmt::format("{}; Id: {}", result.error(), ptr->get_id()));
             }
         }
     }

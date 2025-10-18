@@ -7,29 +7,35 @@ namespace test {
 sim::Simulator::AddResult add_two_way_links(
     sim::Simulator& sim, std::initializer_list<two_way_link_t> links) {
     static std::uint32_t link_index = 0;
+
+    sim::Simulator::AddResult result = {};
+
+    auto add_error = [&result](std::string error) {
+        if (result.has_value()) {
+            result = std::unexpected(std::move(error));
+        } else {
+            result.error() += "; " + std::move(error);
+        }
+    };
+
     for (auto& l : links) {
-        std::string fwd_link_id =
-            "test_fwd_link_" + std::to_string(link_index++);
-        if (auto result = sim.add_link(std::make_shared<sim::Link>(
-                fwd_link_id, l.first, l.second, SpeedGbps(0), TimeNs(0)));
-            result != sim::Simulator::AddResult::OK) {
-            LOG_ERROR(
-                fmt::format("Can not add link {}; error: ", fwd_link_id,
-                            sim::Simulator::add_result_to_string(result)));
-            return result;
-        }
-        std::string backward_link_id =
-            "test_back_link_" + std::to_string(link_index++);
-        if (auto result = sim.add_link(std::make_shared<sim::Link>(
-                backward_link_id, l.second, l.first, SpeedGbps(0), TimeNs(0)));
-            result != sim::Simulator::AddResult::OK) {
-            LOG_ERROR(
-                fmt::format("Can not add link {}; error: ", backward_link_id,
-                            sim::Simulator::add_result_to_string(result)));
-            return result;
-        }
+        auto add_link = [&](std::string link_name,
+                            std::shared_ptr<sim::IDevice> from,
+                            std::shared_ptr<sim::IDevice> to) {
+            if (auto link_add_result = sim.add_link(std::make_shared<sim::Link>(
+                    link_name, from, to, SpeedGbps(0), TimeNs(0)));
+                !link_add_result.has_value()) {
+                add_error(link_add_result.error());
+            }
+        };
+
+        add_link("test_fwd_link_" + std::to_string(link_index++), l.first,
+                 l.second);
+
+        add_link("test_back_link_" + std::to_string(link_index++), l.second,
+                 l.first);
     }
-    return sim::Simulator::AddResult::OK;
+    return result;
 }
 
 static std::shared_ptr<sim::IDevice> get_next_device(
