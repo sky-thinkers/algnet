@@ -24,10 +24,16 @@ TcpFlow::TcpFlow(Id a_id, std::shared_ptr<IConnection> a_conn,
       m_sending_started(false),
       m_init_time(0),
       m_last_ack_arrive_time(0),
+      m_last_send_time(std::nullopt),
       m_packet_size(a_packet_size),
       m_ecn_capable(a_ecn_capable),
+      m_current_rto(TimeNs(2000)),
+      m_max_rto(Time<Second>(1)),
+      m_rto_steady(false),
+      m_retransmit_count(0),
       m_packets_in_flight(0),
       m_delivered_data_size(0),
+      m_sent_data_size(0),
       m_next_packet_num(0) {
     if (m_src.lock() == nullptr) {
         throw std::invalid_argument("Sender for TcpFlow is nullptr");
@@ -41,6 +47,10 @@ TcpFlow::TcpFlow(Id a_id, std::shared_ptr<IConnection> a_conn,
 SizeByte TcpFlow::get_delivered_data_size() const {
     return m_delivered_data_size;
 }
+
+SizeByte TcpFlow::get_sent_data_size() const { return m_sent_data_size; }
+
+uint32_t TcpFlow::retransmit_count() const { return m_retransmit_count; }
 
 TimeNs TcpFlow::get_fct() const {
     if (!m_sending_started) {
@@ -60,6 +70,8 @@ std::shared_ptr<IHost> TcpFlow::get_receiver() const { return m_dest.lock(); }
 Id TcpFlow::get_id() const { return m_id; }
 
 SizeByte TcpFlow::get_delivered_bytes() const { return m_delivered_data_size; }
+
+SizeByte TcpFlow::get_packet_size() const { return m_packet_size; }
 
 SizeByte TcpFlow::get_sending_quota() const {
     const double cwnd = m_cc->get_cwnd();
@@ -213,6 +225,7 @@ public:
             fmt::format("Timeout for packet number {} expired; looks "
                         "like packet loss",
                         m_packet_num));
+        flow->update_rto_on_timeout();
         flow->m_cc->on_timeout();
         flow->retransmit_packet(m_packet_num);
     }
@@ -243,6 +256,8 @@ void TcpFlow::update(Packet packet) {
 
         TimeNs rtt = current_time - packet.sent_time;
         m_rtt_statistics.add_record(rtt);
+        update_rto_on_ack();  // update and transition to STEADY
+
         MetricsCollector::get_instance().add_RTT(packet.flow->get_id(),
                                                  current_time, rtt);
         m_acked.insert(packet.packet_num);
@@ -295,24 +310,34 @@ std::string TcpFlow::to_string() const {
     return oss.str();
 }
 
-TimeNs TcpFlow::get_max_timeout() const {
-    std::optional<TimeNs> mean = m_rtt_statistics.get_mean();
-    if (!mean.has_value()) {
-        return TimeNs(std::numeric_limits<double>::max());
+// Before the first ACK: exponential growth by timeout
+void TcpFlow::update_rto_on_timeout() {
+    if (!m_rto_steady) {
+        m_current_rto = std::min(m_current_rto * 2, m_max_rto);
     }
+    // in STEADY, don't touch RTO by timeout
+}
+
+// After ACK with a valid RTT: formula + transition to STEADY (once)
+void TcpFlow::update_rto_on_ack() {
+    auto mean = m_rtt_statistics.get_mean().value();
     TimeNs std = m_rtt_statistics.get_std().value();
-    return mean.value() * 2 + std * 4;
+    m_current_rto = std::min(mean * 2 + std * 4, m_max_rto);
+    m_rto_steady = true;
 }
 
 void TcpFlow::send_packet_now(Packet packet) {
     TimeNs current_time = Scheduler::get_instance().get_current_time();
 
-    TimeNs max_timeout = get_max_timeout();
-    if (max_timeout != TimeNs(std::numeric_limits<double>::max())) {
-        Scheduler::get_instance().add<Timeout>(current_time + max_timeout,
-                                               this->shared_from_this(),
-                                               packet.packet_num);
+    if (m_last_send_time.has_value()) {
+        MetricsCollector::get_instance().add_packet_spacing(
+            m_id, current_time, current_time - m_last_send_time.value());
     }
+    m_last_send_time = current_time;
+    Scheduler::get_instance().add<Timeout>(current_time + m_current_rto,
+                                           this->shared_from_this(),
+                                           packet.packet_num);
+    m_sent_data_size += packet.size;
 
     packet.sent_time = current_time;
     m_src.lock()->enqueue_packet(std::move(packet));
@@ -321,6 +346,7 @@ void TcpFlow::send_packet_now(Packet packet) {
 void TcpFlow::retransmit_packet(PacketNum packet_num) {
     Packet packet = generate_data_packet(packet_num);
     send_packet_now(std::move(packet));
+    m_retransmit_count++;
 }
 
 }  // namespace sim
