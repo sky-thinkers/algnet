@@ -19,7 +19,6 @@ struct LinkInitArgs {
         std::unexpected("Missing max from egress buffer size");
     utils::StrExpected<SizeByte> max_to_ingress_buffer_size =
         std::unexpected("Missing max to ingress buffer size");
-    ;
 };
 
 class Link : public ILink, public std::enable_shared_from_this<Link> {
