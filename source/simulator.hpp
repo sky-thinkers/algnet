@@ -76,6 +76,12 @@ private:
         std::unordered_set<std::shared_ptr<T>>& objects_stotage) {
         static_assert(std::is_base_of_v<Identifiable, T>,
                       "T must be implement Identifiable interface");
+        if (m_state != State::BEFORE_SIMULATION_START) {
+            return std::unexpected(
+                "Addig objects at state different from BEFORE_SIMULATION is "
+                "not "
+                "implemented yet");
+        }
         if (object == nullptr) {
             return std::unexpected("Object is nullptr");
         }
@@ -108,6 +114,12 @@ private:
         std::unordered_set<std::shared_ptr<T>>& objects_stotage) {
         static_assert(std::is_base_of_v<Identifiable, T>,
                       "T must be implement Identifiable interface");
+        if (m_state != State::BEFORE_SIMULATION_START) {
+            return std::unexpected(
+                "Deleting objects at state different from BEFORE_SIMULATION is "
+                "not "
+                "implemented yet");
+        }
         if (object == nullptr) {
             return std::unexpected("Object is nullptr");
         }
