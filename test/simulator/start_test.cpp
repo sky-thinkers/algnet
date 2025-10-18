@@ -45,11 +45,11 @@ TEST_F(Start, TrivialTopology) {
     auto swtch = std::make_shared<sim::Switch>("switch");
     auto receiver = std::make_shared<sim::Host>("receiver");
 
-    EXPECT_HAS_VALUE(sim.add_host(sender));
-    EXPECT_HAS_VALUE(sim.add_switch(swtch));
-    EXPECT_HAS_VALUE(sim.add_host(receiver));
+    ASSERT_HAS_VALUE(sim.add_host(sender));
+    ASSERT_HAS_VALUE(sim.add_switch(swtch));
+    ASSERT_HAS_VALUE(sim.add_host(receiver));
 
-    EXPECT_HAS_VALUE(
+    ASSERT_HAS_VALUE(
         add_two_way_links(sim, {{sender, swtch}, {swtch, receiver}}));
 
     constexpr SizeByte packet_size(1024);
@@ -82,17 +82,17 @@ TEST_F(Start, ThreeToOneTopology) {
 
     auto swtch = std::make_shared<sim::Switch>("switch");
     auto receiver = std::make_shared<sim::Host>("receiver");
-    EXPECT_HAS_VALUE(sim.add_switch(swtch));
-    EXPECT_HAS_VALUE(sim.add_host(receiver));
+    ASSERT_HAS_VALUE(sim.add_switch(swtch));
+    ASSERT_HAS_VALUE(sim.add_host(receiver));
 
     std::vector<std::shared_ptr<sim::Host>> senders;
     for (int i = 1; i <= 3; ++i) {
         auto s = std::make_shared<sim::Host>("sender" + std::to_string(i));
-        EXPECT_HAS_VALUE(sim.add_host(s));
+        ASSERT_HAS_VALUE(sim.add_host(s));
         senders.push_back(s);
-        EXPECT_HAS_VALUE(add_two_way_links(sim, {{s, swtch}}));
+        ASSERT_HAS_VALUE(add_two_way_links(sim, {{s, swtch}}));
     }
-    EXPECT_HAS_VALUE(add_two_way_links(sim, {{swtch, receiver}}));
+    ASSERT_HAS_VALUE(add_two_way_links(sim, {{swtch, receiver}}));
 
     const SizeByte packet_size{10};
 
