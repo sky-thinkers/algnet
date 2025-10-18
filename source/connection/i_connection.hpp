@@ -18,9 +18,9 @@ public:
 
     virtual Id get_id() const = 0;
     // Add a flow to the connection
-    virtual void add_flow(std::shared_ptr<IFlow> flow) = 0;
+    virtual bool add_flow(std::shared_ptr<IFlow> flow) = 0;
     // Delete a flow from the connection
-    virtual void delete_flow(std::shared_ptr<IFlow> flow) = 0;
+    virtual bool delete_flow(std::shared_ptr<IFlow> flow) = 0;
     // Adds more packets to the total amount to be sent
     virtual void add_data_to_send(SizeByte data_size) = 0;
     // Returns the total amount of data added to the connection

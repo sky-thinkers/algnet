@@ -23,9 +23,9 @@ public:
 
     Id get_id() const override;
 
-    void add_flow(std::shared_ptr<IFlow> flow) override;
+    bool add_flow(std::shared_ptr<IFlow> flow) override;
 
-    void delete_flow(std::shared_ptr<IFlow> flow) override;
+    bool delete_flow(std::shared_ptr<IFlow> flow) override;
 
     void add_data_to_send(SizeByte data) override;
 

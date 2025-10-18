@@ -46,7 +46,6 @@ std::shared_ptr<IConnection> ConnectionParser::parse_connection(
         std::shared_ptr<IFlow> flow(
             FlowParser::parse_i_flow(flow_node, conn_id));
 
-        idf.add_object(flow);
         conn->add_flow(flow);
     }
 
