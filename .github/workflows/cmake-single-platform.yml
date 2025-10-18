@@ -10,6 +10,7 @@ env:
   EXECUTABLE_NAME: nons
   TEST_EXECUTABLE_NAME: test_nons
   METRICS_ARTIFACT_DIR: metrics
+  BUILD_DIR: build
 
 jobs:
   clang-format:
@@ -34,11 +35,27 @@ jobs:
     - name: Update submodules
       run: git submodule update --init --recursive
 
+    - name: Restore cache
+      uses: actions/cache@v4
+      with:
+        path: ${{github.workspace}}/${{env.BUILD_DIR}}
+        key: ${{runner.os}}-cmake-build-app-${{ hashFiles('**/*.hpp', '**/*.h', '**/*.cpp', '**/*.cc') }}
+        restore-keys: ${{runner.os}}-cmake-build-app
+
+    - name: Print build dir info
+      run: tree ${{github.workspace}}/${{ENV.BUILD_DIR}} || true
+
     - name: Configure CMake for building project
-      run: cmake -B build -DCMAKE_BUILD_TYPE=Release -DBUILD_PROJECT=ON -DBUILD_TESTS=OFF
+      run: cmake -B ${{env.BUILD_DIR}} -DCMAKE_BUILD_TYPE=Release -DBUILD_PROJECT=ON -DBUILD_TESTS=OFF
+
+    - name: Print build dir info
+      run: tree ${{github.workspace}}/${{ENV.BUILD_DIR}} || true
 
     - name: Build project
-      run: cmake --build build --config Debug -j $(nproc)
+      run: cmake --build ${{env.BUILD_DIR}} --config Debug -j $(nproc)
+
+    - name: Print build dir info
+      run: tree ${{github.workspace}}/${{ENV.BUILD_DIR}} || true
 
     - name: Upload artifact
       uses: actions/upload-artifact@v4
@@ -89,7 +106,7 @@ jobs:
     - name: Calculate deploy destination dir
       run: |
         DEPLOY_DIR=$(python3 scripts/calculate_deploy_dir.py -c github_context.json);
-        echo "DEPLOY_DIR=${DEPLOY_DIR}/${{env.METRICS_ARTIFACT_DIR}}" >> $GITHUB_ENV;     
+        echo "DEPLOY_DIR=${DEPLOY_DIR}/${{env.METRICS_ARTIFACT_DIR}}" >> $GITHUB_ENV;
 
     - name: Deploy to GitHub Pages
       if: ${{env.DEPLOY_DIR}} != ''
@@ -99,9 +116,9 @@ jobs:
         publish_dir: ${{env.METRICS_ARTIFACT_DIR}}
         destination_dir: ${{env.DEPLOY_DIR}}
 
-    - name: Wait for artifacts to be available
-      run:
-        python3 scripts/check_artifacts.py -u 'https://cloud-storage-team.github.io/algnet/${{env.DEPLOY_DIR}}'
+    # - name: Wait for artifacts to be available
+    #   run:
+    #     python3 scripts/check_artifacts.py -u 'https://cloud-storage-team.github.io/algnet/${{env.DEPLOY_DIR}}'
 
   test:
     runs-on: ubuntu-latest
@@ -111,8 +128,18 @@ jobs:
     - name: Update submodules
       run: git submodule update --init --recursive
 
+    - name: Restore cache
+      uses: actions/cache@v4
+      with:
+        path: ${{github.workspace}}/${{env.BUILD_DIR}}
+        key: ${{runner.os}}-cmake-build-tests-${{ hashFiles('**/*.hpp', '**/*.h', '**/*.cpp', '**/*.cc') }}
+        restore-keys: ${{runner.os}}-cmake-build-tests
+
+    - name: Print build dir info
+      run: ls -la ${{ env.BUILD_DIR }} && du -sh ${{ env.BUILD_DIR }} || true
+
     - name: Configure CMake for building tests
-      run: cmake -B build -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DBUILD_PROJECT=OFF -DBUILD_TESTS=ON
+      run: cmake -B ${{env.BUILD_DIR}} -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DBUILD_PROJECT=OFF -DBUILD_TESTS=ON
 
     - name: Build tests
       run: cmake --build build --config Debug -j $(nproc)
@@ -126,7 +153,7 @@ jobs:
     needs: build
     steps:
     - uses: actions/checkout@v4
-    
+
     - name: Download nons executable
       uses: actions/download-artifact@v4
       with:
@@ -134,7 +161,7 @@ jobs:
 
     - name: Add executable flag
       run: chmod +x ${{env.EXECUTABLE_NAME}}
-    
+
     - name: Update PYTHONPOATH
       run: echo "PYTHONPATH=${{ github.workspace }}/scripts" >> $GITHUB_ENV
 
