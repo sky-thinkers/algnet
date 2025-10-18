@@ -35,16 +35,13 @@ std::shared_ptr<IConnection> ConnectionParser::parse_connection(
     auto conn = std::make_shared<ConnectionImpl>(conn_id, sender_ptr,
                                                  receiver_ptr, std::move(mplb));
 
-    auto& idf = IdentifierFactory::get_instance();
-    idf.add_object(conn);
-
     ConfigNode flows_node = node["flows"].value_or_throw();
 
     for (auto it = flows_node.begin(); it != flows_node.end(); ++it) {
         ConfigNode flow_node = *it;
 
         std::shared_ptr<IFlow> flow(
-            FlowParser::parse_i_flow(flow_node, conn_id));
+            FlowParser::parse_i_flow(flow_node, conn));
 
         conn->add_flow(flow);
     }

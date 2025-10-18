@@ -6,21 +6,66 @@ bool Simulator::add_host(std::shared_ptr<IHost> host) {
     if (host == nullptr) {
         return false;
     }
-    return m_hosts.insert(host).second;
+    if (!IdentifierFactory::get_instance().add_object(host)) {
+        return false;
+    }
+    if (!m_hosts.insert(host).second) {
+        LOG_ERROR(
+            fmt::format("Host with id {} added to IdentiferFactory, but "
+                        "already in hosts set",
+                        host->get_id()));
+        if (!IdentifierFactory::get_instance().delete_object(host)) {
+            LOG_ERROR(
+                fmt::format("Impossible sittuation: host with id {} added to "
+                            "IdentifierFactory, but can not be deleted",
+                            host->get_id()));
+        }
+        return false;
+    }
+    return true;
 }
 
 bool Simulator::add_switch(std::shared_ptr<ISwitch> switch_device) {
     if (switch_device == nullptr) {
         return false;
     }
-    return m_switches.insert(switch_device).second;
+    if (!IdentifierFactory::get_instance().add_object(switch_device)) {
+        return false;
+    }
+    if (!m_switches.insert(switch_device).second) {
+        LOG_ERROR(
+            fmt::format("Switch with id {} added to IdentiferFactory, but "
+                        "already in switches set",
+                        switch_device->get_id()));
+        if (!IdentifierFactory::get_instance().delete_object(switch_device)) {
+            LOG_ERROR(
+                fmt::format("Impossible sittuation: switch with id {} added to "
+                            "IdentifierFactory, but can not be deleted",
+                            switch_device->get_id()));
+        }
+        return false;
+    }
+    return true;
 }
 
 bool Simulator::add_connection(std::shared_ptr<IConnection> connection) {
     if (connection == nullptr) {
         return false;
     }
+    if (!IdentifierFactory::get_instance().add_object(connection)) {
+        return false;
+    }
     if (!m_connections.insert(connection).second) {
+        LOG_ERROR(
+            fmt::format("Connection with id {} added to IdentiferFactory, but "
+                        "already in connections set",
+                        connection->get_id()));
+        if (!IdentifierFactory::get_instance().delete_object(connection)) {
+            LOG_ERROR(fmt::format(
+                "Impossible sittuation: connection with id {} added to "
+                "IdentifierFactory, but can not be deleted",
+                connection->get_id()));
+        }
         return false;
     }
     return true;
@@ -30,7 +75,20 @@ bool Simulator::add_link(std::shared_ptr<ILink> link) {
     if (!is_valid_link(link)) {
         return false;
     }
+    if (!IdentifierFactory::get_instance().add_object(link)) {
+        return false;
+    }
     if (!m_links.insert(link).second) {
+        LOG_ERROR(
+            fmt::format("Link with id {} added to IdentiferFactory, but "
+                        "already in links set",
+                        link->get_id()));
+        if (!IdentifierFactory::get_instance().delete_object(link)) {
+            LOG_ERROR(
+                fmt::format("Impossible sittuation: link with id {} added to "
+                            "IdentifierFactory, but can not be deleted",
+                            link->get_id()));
+        }
         return false;
     }
     auto a_from = link->get_from();
