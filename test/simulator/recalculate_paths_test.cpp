@@ -10,8 +10,10 @@ namespace test {
 
 class RecalculatePaths : public testing::Test {
 public:
-    void TearDown() override {};
-    void SetUp() override {};
+    void TearDown() override {
+        sim::IdentifierFactory::get_instance().clear();
+    };
+    void SetUp() override { sim::IdentifierFactory::get_instance().clear(); };
 };
 
 static void check_pairwise_reachability(const sim::Simulator& simulator) {

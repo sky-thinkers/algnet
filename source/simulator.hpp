@@ -49,16 +49,16 @@ public:
                                                  : "Unknown";
     }
 
-    AddResult add_host(std::shared_ptr<IHost> host);
+    [[nodiscard]] AddResult add_host(std::shared_ptr<IHost> host);
     bool delete_host(std::shared_ptr<IHost> host);
 
-    AddResult add_switch(std::shared_ptr<ISwitch> switch_device);
+    [[nodiscard]] AddResult add_switch(std::shared_ptr<ISwitch> switch_device);
     bool delete_switch(std::shared_ptr<ISwitch> switch_device);
 
-    AddResult add_connection(std::shared_ptr<IConnection> connection);
+    [[nodiscard]] AddResult add_connection(std::shared_ptr<IConnection> connection);
     bool delete_connection(std::shared_ptr<IConnection> connection);
 
-    AddResult add_link(std::shared_ptr<ILink> link);
+    [[nodiscard]] AddResult add_link(std::shared_ptr<ILink> link);
     bool delete_link(std::shared_ptr<ILink> link);
 
     void set_scenario(Scenario&& scenario);

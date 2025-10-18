@@ -4,14 +4,32 @@
 
 namespace test {
 
-void add_two_way_links(sim::Simulator& sim,
-                       std::initializer_list<two_way_link_t> links) {
+sim::Simulator::AddResult add_two_way_links(
+    sim::Simulator& sim, std::initializer_list<two_way_link_t> links) {
+    static std::uint32_t link_index = 0;
     for (auto& l : links) {
-        sim.add_link(std::make_shared<sim::Link>("", l.first, l.second,
-                                                 SpeedGbps(0), TimeNs(0)));
-        sim.add_link(std::make_shared<sim::Link>("", l.second, l.first,
-                                                 SpeedGbps(0), TimeNs(0)));
+        std::string fwd_link_id =
+            "test_fwd_link_" + std::to_string(link_index++);
+        if (auto result = sim.add_link(std::make_shared<sim::Link>(
+                fwd_link_id, l.first, l.second, SpeedGbps(0), TimeNs(0)));
+            result != sim::Simulator::AddResult::OK) {
+            LOG_ERROR(
+                fmt::format("Can not add link {}; error: ", fwd_link_id,
+                            sim::Simulator::add_result_to_string(result)));
+            return result;
+        }
+        std::string backward_link_id =
+            "test_back_link_" + std::to_string(link_index++);
+        if (auto result = sim.add_link(std::make_shared<sim::Link>(
+                backward_link_id, l.second, l.first, SpeedGbps(0), TimeNs(0)));
+            result != sim::Simulator::AddResult::OK) {
+            LOG_ERROR(
+                fmt::format("Can not add link {}; error: ", backward_link_id,
+                            sim::Simulator::add_result_to_string(result)));
+            return result;
+        }
     }
+    return sim::Simulator::AddResult::OK;
 }
 
 static std::shared_ptr<sim::IDevice> get_next_device(

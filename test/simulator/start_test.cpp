@@ -25,15 +25,20 @@ std::shared_ptr<sim::TcpFlow> add_connection_with_single_flow(
 
     connection->add_flow(flow);
 
-    sim.add_connection(connection);
+    if (auto result = sim.add_connection(connection);
+        result != sim::Simulator::AddResult::OK) {
+        LOG_ERROR(fmt::format("Can not add connection: {}",
+                              sim::Simulator::add_result_to_string(result)));
+        return nullptr;
+    }
     return flow;
 }
 }  // namespace
 
 class Start : public testing::Test {
 public:
-    void TearDown() override {}
-    void SetUp() override {};
+    void TearDown() override { sim::IdentifierFactory::get_instance().clear(); }
+    void SetUp() override { sim::IdentifierFactory::get_instance().clear(); };
 };
 
 TEST_F(Start, TrivialTopology) {
@@ -42,17 +47,20 @@ TEST_F(Start, TrivialTopology) {
     auto swtch = std::make_shared<sim::Switch>("switch");
     auto receiver = std::make_shared<sim::Host>("receiver");
 
-    sim.add_host(sender);
-    sim.add_switch(swtch);
-    sim.add_host(receiver);
+    ASSERT_EQ(sim.add_host(sender), sim::Simulator::AddResult::OK);
+    ASSERT_EQ(sim.add_switch(swtch), sim::Simulator::AddResult::OK);
+    ASSERT_EQ(sim.add_host(receiver), sim::Simulator::AddResult::OK);
 
-    add_two_way_links(sim, {{sender, swtch}, {swtch, receiver}});
+    ASSERT_EQ(add_two_way_links(sim, {{sender, swtch}, {swtch, receiver}}),
+              sim::Simulator::AddResult::OK);
 
     constexpr SizeByte packet_size(1024);
     constexpr SizeByte data_to_send = SizeByte(1024);
 
     auto flow = add_connection_with_single_flow(sim, "conn1", sender, receiver,
                                                 packet_size);
+
+    ASSERT_NE(flow, nullptr);
 
     auto scenario = sim::Scenario();
     std::vector<std::weak_ptr<sim::IConnection>> conns;
@@ -76,17 +84,19 @@ TEST_F(Start, ThreeToOneTopology) {
 
     auto swtch = std::make_shared<sim::Switch>("switch");
     auto receiver = std::make_shared<sim::Host>("receiver");
-    sim.add_switch(swtch);
-    sim.add_host(receiver);
+    ASSERT_EQ(sim.add_switch(swtch), sim::Simulator::AddResult::OK);
+    ASSERT_EQ(sim.add_host(receiver), sim::Simulator::AddResult::OK);
 
     std::vector<std::shared_ptr<sim::Host>> senders;
     for (int i = 1; i <= 3; ++i) {
         auto s = std::make_shared<sim::Host>("sender" + std::to_string(i));
-        sim.add_host(s);
+        ASSERT_EQ(sim.add_host(s), sim::Simulator::AddResult::OK);
         senders.push_back(s);
-        add_two_way_links(sim, {{s, swtch}});
+        ASSERT_EQ(add_two_way_links(sim, {{s, swtch}}),
+                  sim::Simulator::AddResult::OK);
     }
-    add_two_way_links(sim, {{swtch, receiver}});
+    ASSERT_EQ(add_two_way_links(sim, {{swtch, receiver}}),
+              sim::Simulator::AddResult::OK);
 
     const SizeByte packet_size{10};
 
