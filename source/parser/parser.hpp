@@ -24,9 +24,7 @@ private:
     void process_identifiables(
         const ConfigNode& node,
         std::function<Simulator::AddResult(std::shared_ptr<T>)> add_func,
-        std::function<std::shared_ptr<T>(const ConfigNode&)> parse_func,
-        const std::string& message) {
-        (void)message;
+        std::function<std::shared_ptr<T>(const ConfigNode&)> parse_func) {
         static_assert(std::is_base_of_v<Identifiable, T>,
                       "T must be Identifiable");
 
