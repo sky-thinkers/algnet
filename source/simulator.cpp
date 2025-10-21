@@ -2,42 +2,64 @@
 
 namespace sim {
 
-bool Simulator::add_host(std::shared_ptr<IHost> host) {
-    if (host == nullptr) {
-        return false;
-    }
-    return m_hosts.insert(host).second;
+Simulator::Simulator() : m_state(State::BEFORE_SIMULATION_START) {}
+
+Simulator::AddResult Simulator::add_host(std::shared_ptr<IHost> host) {
+    return default_add_object(host, m_hosts);
 }
 
-bool Simulator::add_switch(std::shared_ptr<ISwitch> switch_device) {
-    if (switch_device == nullptr) {
-        return false;
-    }
-    return m_switches.insert(switch_device).second;
+Simulator::DeleteResult Simulator::delete_host(std::shared_ptr<IHost> host) {
+    return default_delete_object(host, m_hosts);
 }
 
-bool Simulator::add_connection(std::shared_ptr<IConnection> connection) {
-    if (connection == nullptr) {
-        return false;
-    }
-    if (!m_connections.insert(connection).second) {
-        return false;
-    }
-    return true;
+Simulator::AddResult Simulator::add_switch(
+    std::shared_ptr<ISwitch> switch_device) {
+    return default_add_object(switch_device, m_switches);
 }
 
-bool Simulator::add_link(std::shared_ptr<ILink> link) {
+Simulator::DeleteResult Simulator::delete_switch(
+    std::shared_ptr<ISwitch> switch_device) {
+    return default_delete_object(switch_device, m_switches);
+}
+
+Simulator::AddResult Simulator::add_connection(
+    std::shared_ptr<IConnection> connection) {
+    return default_add_object(connection, m_connections);
+}
+
+Simulator::DeleteResult Simulator::delete_connection(
+    std::shared_ptr<IConnection> connection) {
+    return default_delete_object(connection, m_connections);
+}
+
+Simulator::AddResult Simulator::add_link(std::shared_ptr<ILink> link) {
     if (!is_valid_link(link)) {
-        return false;
+        return std::unexpected("Link is incorrect");
     }
-    if (!m_links.insert(link).second) {
-        return false;
+    if (AddResult result = default_add_object(link, m_links);
+        !result.has_value()) {
+        return result;
     }
     auto a_from = link->get_from();
     auto a_to = link->get_to();
     a_from->add_outlink(link);
     a_to->add_inlink(link);
-    return true;
+    return {};
+}
+
+Simulator::DeleteResult Simulator::delete_link(std::shared_ptr<ILink> link) {
+    if (!is_valid_link(link)) {
+        return std::unexpected("Link is incorrect");
+    }
+    if (DeleteResult result = default_delete_object(link, m_links);
+        !result.has_value()) {
+        return result;
+    }
+    auto a_from = link->get_from();
+    auto a_to = link->get_to();
+    a_from->add_outlink(link);
+    a_to->add_inlink(link);
+    return {};
 }
 
 void Simulator::set_scenario(Scenario&& scenario) {
@@ -83,8 +105,10 @@ void Simulator::start() {
 
     m_scenario.start();
 
+    m_state = State::SIMULATION_IN_PROGRESS;
     while (Scheduler::get_instance().tick()) {
     }
+    m_state = State::SIMULATION_ENDED;
 }
 
 std::unordered_set<std::shared_ptr<IConnection>> Simulator::get_connections()
