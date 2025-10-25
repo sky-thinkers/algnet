@@ -7,7 +7,7 @@
 #include <cstdlib>
 #include <iostream>
 
-#include "request.hpp"
+#include "request/request.hpp"
 #include "simulator.hpp"
 
 namespace beast = boost::beast;           // from <boost/beast.hpp>
@@ -18,8 +18,28 @@ using tcp = boost::asio::ip::tcp;         // from <boost/asio/ip/tcp.hpp>
 
 //------------------------------------------------------------------------------
 
+namespace websocket {
+
+static Response handle_request(std::string request,
+                               sim::Simulator& simulator) noexcept {
+    RequestOrErr request_or_err = parse_request(request);
+
+    if (!request_or_err.has_value()) {
+        return ErrorResponseData(request_or_err.error());
+    }
+    try {
+        return std::visit(
+            [&](auto&& req) { return req.apply_to_simulator(simulator); },
+            request_or_err.value());
+    } catch (const std::exception& e) {
+        return ErrorResponseData(std::string(e.what()));
+    } catch (...) {
+        return ErrorResponseData("Unexpected error");
+    }
+}
+
 // Echoes back all received WebSocket messages
-void websocket::session(unsigned short port) {
+void session(unsigned short port) {
     auto const address = net::ip::make_address("127.0.0.1");
 
     // The io_context is required for all I/O
@@ -58,29 +78,9 @@ void websocket::session(unsigned short port) {
 
             std::string message((char*)buffer.data().data());
 
-            Request request = parse_request(message);
+            Response response = handle_request(message, simulator);
 
-            std::visit(
-                [&](auto&& req) {
-                    ApplyResult result = req.apply_to_simulator(simulator);
-                    std::string response;
-                    if (result.has_value()) {
-                        response = "{\"type\": \"Empty\"}";
-                    } else {
-                        response = fmt::format(
-                            "{{\"type\": \"ErrorResponseData\", "
-                            "\"err\":  \"{}\"}}",
-                            result.error());
-                    }
-                    ws.write(net::buffer(std::move(response)));
-                },
-                request);
-
-            std::cerr << message << "\n";
-            // ws.write(net::buffer(
-            //     std::string("{\"type\":\"ErrorResponseData\",\"err\":\"server
-            //     "
-            //                 "is not implemented yet\"}")));
+            ws.write(net::buffer(std::move(response)));
         }
     } catch (beast::system_error const& se) {
         // This indicates that the session was closed
@@ -90,3 +90,5 @@ void websocket::session(unsigned short port) {
         std::cerr << "Error: " << e.what() << std::endl;
     }
 }
+
+}  // namespace websocket
