@@ -59,6 +59,7 @@ jobs:
       run: |
         sudo apt install --fix-missing gnuplot
         sudo apt install --fix-missing graphviz
+        sudo apt install libboost-all-dev
         pip install graphviz
 
     - uses: actions/checkout@v4
@@ -87,6 +88,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
+
+    - name: Install dependecies
+      run: sudo apt install libboost-all-dev
 
     - name: Update submodules
       run: git submodule update --init --recursive
