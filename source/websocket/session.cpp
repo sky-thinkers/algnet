@@ -65,9 +65,9 @@ void websocket::session(unsigned short port) {
                     ApplyResult result = req.apply_to_simulator(simulator);
                     std::string response;
                     if (result.has_value()) {
-                        result = "{\"type\": \"Empty\"}";
+                        response = "{\"type\": \"Empty\"}";
                     } else {
-                        result = fmt::format(
+                        response = fmt::format(
                             "{{\"type\": \"ErrorResponseData\", "
                             "\"err\":  \"{}\"}}",
                             result.error());
