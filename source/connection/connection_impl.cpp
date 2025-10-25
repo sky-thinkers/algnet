@@ -18,14 +18,26 @@ ConnectionImpl::ConnectionImpl(Id a_id, std::shared_ptr<IHost> a_src,
 
 Id ConnectionImpl::get_id() const { return m_id; }
 
-void ConnectionImpl::add_flow(std::shared_ptr<IFlow> flow) {
-    m_flows.insert(flow);
+bool ConnectionImpl::add_flow(std::shared_ptr<IFlow> flow) {
+    if (!IdentifierFactory::get_instance().add_object(flow)) {
+        return false;
+    }
+    if (!m_flows.insert(flow).second) {
+        return false;
+    };
     m_mplb->add_flow(flow);
+    return true;
 }
 
-void ConnectionImpl::delete_flow(std::shared_ptr<IFlow> flow) {
-    m_flows.erase(flow);
+bool ConnectionImpl::delete_flow(std::shared_ptr<IFlow> flow) {
     m_mplb->remove_flow(flow);
+    if (m_flows.erase(flow) == 0) {
+        return false;
+    }
+    if (!IdentifierFactory::get_instance().delete_object(flow)) {
+        return false;
+    }
+    return true;
 }
 
 void ConnectionImpl::add_data_to_send(SizeByte data) {

@@ -25,15 +25,18 @@ std::shared_ptr<sim::TcpFlow> add_connection_with_single_flow(
 
     connection->add_flow(flow);
 
-    sim.add_connection(connection);
+    if (auto result = sim.add_connection(connection); !result.has_value()) {
+        LOG_ERROR(fmt::format("Can not add connection: {}", result.error()));
+        return nullptr;
+    }
     return flow;
 }
 }  // namespace
 
 class Start : public testing::Test {
 public:
-    void TearDown() override {}
-    void SetUp() override {};
+    void TearDown() override { sim::IdentifierFactory::get_instance().clear(); }
+    void SetUp() override { sim::IdentifierFactory::get_instance().clear(); };
 };
 
 TEST_F(Start, TrivialTopology) {
@@ -42,17 +45,20 @@ TEST_F(Start, TrivialTopology) {
     auto swtch = std::make_shared<sim::Switch>("switch");
     auto receiver = std::make_shared<sim::Host>("receiver");
 
-    sim.add_host(sender);
-    sim.add_switch(swtch);
-    sim.add_host(receiver);
+    ASSERT_HAS_VALUE(sim.add_host(sender));
+    ASSERT_HAS_VALUE(sim.add_switch(swtch));
+    ASSERT_HAS_VALUE(sim.add_host(receiver));
 
-    add_two_way_links(sim, {{sender, swtch}, {swtch, receiver}});
+    ASSERT_HAS_VALUE(
+        add_two_way_links(sim, {{sender, swtch}, {swtch, receiver}}));
 
     constexpr SizeByte packet_size(1024);
     constexpr SizeByte data_to_send = SizeByte(1024);
 
     auto flow = add_connection_with_single_flow(sim, "conn1", sender, receiver,
                                                 packet_size);
+
+    ASSERT_NE(flow, nullptr);
 
     auto scenario = sim::Scenario();
     std::vector<std::weak_ptr<sim::IConnection>> conns;
@@ -62,13 +68,13 @@ TEST_F(Start, TrivialTopology) {
     }
 
     scenario.add_action(std::make_unique<sim::SendDataAction>(
-        TimeNs(0), data_to_send, conns, 1, TimeNs(0)));
+        TimeNs(0), data_to_send, conns, 1, TimeNs(0), TimeNs(0)));
 
     sim.set_scenario(std::move(scenario));
 
     sim.start();
 
-    ASSERT_EQ(flow->get_delivered_bytes(), data_to_send);
+    ASSERT_EQ(flow->get_delivered_data_size(), data_to_send);
 }
 
 TEST_F(Start, ThreeToOneTopology) {
@@ -76,17 +82,17 @@ TEST_F(Start, ThreeToOneTopology) {
 
     auto swtch = std::make_shared<sim::Switch>("switch");
     auto receiver = std::make_shared<sim::Host>("receiver");
-    sim.add_switch(swtch);
-    sim.add_host(receiver);
+    ASSERT_HAS_VALUE(sim.add_switch(swtch));
+    ASSERT_HAS_VALUE(sim.add_host(receiver));
 
     std::vector<std::shared_ptr<sim::Host>> senders;
     for (int i = 1; i <= 3; ++i) {
         auto s = std::make_shared<sim::Host>("sender" + std::to_string(i));
-        sim.add_host(s);
+        ASSERT_HAS_VALUE(sim.add_host(s));
         senders.push_back(s);
-        add_two_way_links(sim, {{s, swtch}});
+        ASSERT_HAS_VALUE(add_two_way_links(sim, {{s, swtch}}));
     }
-    add_two_way_links(sim, {{swtch, receiver}});
+    ASSERT_HAS_VALUE(add_two_way_links(sim, {{swtch, receiver}}));
 
     const SizeByte packet_size{10};
 
@@ -113,7 +119,7 @@ TEST_F(Start, ThreeToOneTopology) {
         conns.emplace_back(connection);
 
         scenario.add_action(std::make_unique<sim::SendDataAction>(
-            TimeNs(0), size, conns, 1, TimeNs(0)));
+            TimeNs(0), size, conns, 1, TimeNs(0), TimeNs(0)));
     }
     sim.set_scenario(std::move(scenario));
 
@@ -122,7 +128,7 @@ TEST_F(Start, ThreeToOneTopology) {
     for (int i = 0; i < 3; ++i) {
         const auto conn_id = "conn" + std::to_string(i + 1);
         const auto expected = data_to_send_map.at(conn_id);
-        const auto actual = flows[i]->get_delivered_bytes();
+        const auto actual = flows[i]->get_delivered_data_size();
         ASSERT_EQ(actual, expected) << conn_id << " mismatch";
     }
 }

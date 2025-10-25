@@ -71,7 +71,7 @@ void YamlParser::process_hosts(const ConfigNode &hosts_node) {
         [this](std::shared_ptr<IHost> host) {
             return m_simulator.add_host(host);
         },
-        HostParser::parse_i_host, "Can not add host.");
+        HostParser::parse_i_host);
 }
 
 void YamlParser::process_switches(const ConfigNode &switches_node,
@@ -84,8 +84,7 @@ void YamlParser::process_switches(const ConfigNode &switches_node,
         [&packet_spraying_node](const ConfigNode &switch_node) {
             return SwitchParser::parse_i_switch(switch_node,
                                                 packet_spraying_node);
-        },
-        "Can not add switch.");
+        });
 }
 
 void YamlParser::process_links(const ConfigNode &links_node,
@@ -104,8 +103,7 @@ void YamlParser::process_links(const ConfigNode &links_node,
         },
         [&presets](const ConfigNode &link_node) {
             return LinkParser::parse_i_link(link_node, presets);
-        },
-        "Can not add link.");
+        });
 }
 
 void YamlParser::process_connection(const ConfigNode &connections_node) {
@@ -114,8 +112,7 @@ void YamlParser::process_connection(const ConfigNode &connections_node) {
         [this](std::shared_ptr<IConnection> connection) {
             return m_simulator.add_connection(connection);
         },
-        ConnectionParser::parse_i_connection, "Can not add connection.",
-        RegistrationPolicy::ByParser);
+        ConnectionParser::parse_i_connection);
 }
 
 void YamlParser::process_scenario(const ConfigNode &scenario_node) {
