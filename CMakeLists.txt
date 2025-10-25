@@ -30,6 +30,7 @@ include_directories(
     ${CMAKE_SOURCE_DIR}/source/
     ${CMAKE_SOURCE_DIR}/external/spdlog/include/
     ${CMAKE_SOURCE_DIR}/external/cxxopts/include/
+    ${CMAKE_SOURCE_DIR}/external/nlohmann_json/include/
     ${Boost_INCLUDE_DIRS}
 )
 
@@ -56,7 +57,7 @@ if(BUILD_TESTS)
     add_subdirectory(external/googletest)
     set(TEST_NAME "test_nons")
     add_executable(${TEST_NAME} ${src} ${tests})
-    
+
     target_include_directories(${TEST_NAME} PRIVATE ${CMAKE_SOURCE_DIR}/external/yaml-cpp/include)
     target_include_directories(${TEST_NAME} PUBLIC "source")
 

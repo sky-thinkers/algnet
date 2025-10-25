@@ -1,17 +1,20 @@
+#include "session.hpp"
+
 #include <boost/asio/buffer.hpp>
-#include <iostream>
 #include <boost/asio/ip/tcp.hpp>
 #include <boost/beast/core.hpp>
 #include <boost/beast/websocket.hpp>
 #include <cstdlib>
 #include <iostream>
-#include "session.hpp"
 
-namespace beast = boost::beast;          // from <boost/beast.hpp>
-namespace http = beast::http;            // from <boost/beast/http.hpp>
+#include "request.hpp"
+#include "simulator.hpp"
+
+namespace beast = boost::beast;           // from <boost/beast.hpp>
+namespace http = beast::http;             // from <boost/beast/http.hpp>
 namespace bwebsocket = beast::websocket;  // from <boost/beast/websocket.hpp>
-namespace net = boost::asio;             // from <boost/asio.hpp>
-using tcp = boost::asio::ip::tcp;        // from <boost/asio/ip/tcp.hpp>
+namespace net = boost::asio;              // from <boost/asio.hpp>
+using tcp = boost::asio::ip::tcp;         // from <boost/asio/ip/tcp.hpp>
 
 //------------------------------------------------------------------------------
 
@@ -30,6 +33,8 @@ void websocket::session(unsigned short port) {
 
     // Block until we get a connection
     acceptor.accept(socket);
+
+    sim::Simulator simulator;
 
     try {
         // Construct the stream by moving in the socket
@@ -51,8 +56,31 @@ void websocket::session(unsigned short port) {
             // Read a message
             ws.read(buffer);
 
-            std::cerr << (char*)buffer.data().data() << "\n";
-            ws.write(net::buffer(std::string("{\"type\":\"ErrorResponseData\",\"err\":\"server is not implemented yet\"}")));
+            std::string message((char*)buffer.data().data());
+
+            Request request = parse_request(message);
+
+            std::visit(
+                [&](auto&& req) {
+                    ApplyResult result = req.apply_to_simulator(simulator);
+                    std::string response;
+                    if (result.has_value()) {
+                        result = "{\"type\": \"Empty\"}";
+                    } else {
+                        result = fmt::format(
+                            "{{\"type\": \"ErrorResponseData\", "
+                            "\"err\":  \"{}\"}}",
+                            result.error());
+                    }
+                    ws.write(net::buffer(std::move(response)));
+                },
+                request);
+
+            std::cerr << message << "\n";
+            // ws.write(net::buffer(
+            //     std::string("{\"type\":\"ErrorResponseData\",\"err\":\"server
+            //     "
+            //                 "is not implemented yet\"}")));
         }
     } catch (beast::system_error const& se) {
         // This indicates that the session was closed
