@@ -27,11 +27,10 @@ RequestOrErr parse_request(const std::string& request) noexcept {
             }
             SpeedGbps speed = maybe_speed.value();
             return AddLink(name, from_id, to_id, speed);
+        } else if (type == "Connection") {
+            return AddConnection(json);
         }
         return std::unexpected("Unexpected request type: " + type);
-    } catch (const nlohmann::json::exception& e) {
-        return std::unexpected(
-            fmt::format("Error from json parser: {}", e.what()));
     } catch (const std::exception& e) {
         return std::unexpected(
             fmt::format("Some unexpected exception: {}", e.what()));

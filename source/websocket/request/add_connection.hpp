@@ -1,19 +1,17 @@
 #pragma once
+#include <nlohmann/json.hpp>
+
 #include "i_request.hpp"
 
 namespace websocket {
 
-class AddLink : public IRequest {
+class AddConnection : public IRequest {
 public:
-    AddLink(Id a_name, Id a_from, Id a_to, SpeedGbps a_speed);
+    explicit AddConnection(nlohmann::json a_json);
 
     [[nodiscard]] Response apply_to_simulator(sim::Simulator& simulator) final;
 
 private:
-    Id m_name;
-    Id m_from;
-    Id m_to;
-    SpeedGbps m_speed;
+    nlohmann::json m_json;
 };
-
 }  // namespace websocket

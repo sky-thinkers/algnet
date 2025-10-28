@@ -10,7 +10,7 @@ namespace websocket {
 
 class IRequest {
     [[nodiscard]] virtual Response apply_to_simulator(
-        sim::Simulator& simlator) = 0;
+        sim::Simulator& simulator) = 0;
 };
 
 }  // namespace websocket
