@@ -24,7 +24,7 @@ public:
     [[nodiscard]] bool delete_object(std::shared_ptr<Identifiable> object);
 
     template <typename TObject>
-    std::shared_ptr<TObject> get_object(Id id) {
+    std::shared_ptr<TObject> get_object(Id id) const {
         static_assert(std::is_base_of_v<Identifiable, TObject>,
                       "TObject must implement Identifiable interface");
         auto it = m_id_table.find(id);
@@ -35,7 +35,7 @@ public:
     }
 
     template <typename TObject>
-    std::vector<std::shared_ptr<TObject> > get_objects() {
+    std::vector<std::shared_ptr<TObject> > get_objects() const {
         static_assert(std::is_base_of_v<Identifiable, TObject>,
                       "TObject must implement Identifiable interface");
         std::vector<std::shared_ptr<TObject> > result;

@@ -2,6 +2,8 @@
 
 #include <nlohmann/json.hpp>
 
+#include "parser/parse_utils.hpp"
+
 namespace websocket {
 
 RequestOrErr parse_request(const std::string& request) noexcept {
@@ -13,6 +15,18 @@ RequestOrErr parse_request(const std::string& request) noexcept {
             return {AddHost(json.at("name"))};
         } else if (type == "Switch") {
             return {AddSwitch(json.at("name"))};
+        } else if (type == "Link") {
+            Id name = json.at("name");
+            Id from_id = json.at("from_id");
+            Id to_id = json.at("to_id");
+            utils::StrExpected<SpeedGbps> maybe_speed =
+                sim::parse_speed(json.at("speed"));
+            if (!maybe_speed.has_value()) {
+                return std::unexpected(fmt::format("Speed parsing error: '{}'",
+                                                   maybe_speed.error()));
+            }
+            SpeedGbps speed = maybe_speed.value();
+            return AddLink(name, from_id, to_id, speed);
         }
         return std::unexpected("Unexpected request type: " + type);
     } catch (const nlohmann::json::exception& e) {
