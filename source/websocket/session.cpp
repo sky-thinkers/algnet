@@ -51,7 +51,6 @@ void session(unsigned short port) {
     // This will receive the new connection
     tcp::socket socket{ioc};
 
-
     LOG_INFO(fmt::format("Server started at {}:{}", address.to_string(), port));
 
     // Block until we get a connection
@@ -79,7 +78,7 @@ void session(unsigned short port) {
             // Read a message
             ws.read(buffer);
 
-            std::string message((char*)buffer.data().data());
+            std::string message(beast::buffers_to_string(buffer.data()));
 
             Response response = handle_request(message, simulator);
 
