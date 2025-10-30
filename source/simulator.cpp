@@ -24,10 +24,9 @@ nlohmann::json Simulator::to_json() const {
     }
 
     nlohmann::json connections = nlohmann::json::array();
-    // TODO: uncomment
-    // for (const auto& connection : m_connections) {
-    //     connections.emplace_back(connection->to_json());
-    // }
+    for (const auto& connection : m_connections) {
+        connections.emplace_back(connection->to_json());
+    }
 
     json["hosts"] = std::move(hosts);
     json["switches"] = std::move(switches);

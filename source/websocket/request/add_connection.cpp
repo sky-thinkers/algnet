@@ -54,6 +54,10 @@ Response AddConnection::apply_to_simulator(sim::Simulator& simulator) {
                     name, sender, receiver,
                     std::make_shared<sim::RoundRobinMPLB>());
 
+            // ATTENTION: DO NOT PLACE THIS CALL AFTER connection->add_flow
+            // (it will trigger data sending)
+            connection->add_data_to_send(data_to_send);
+
             Id flow_name = fmt::format("{}_flow", name);
             std::unique_ptr<sim::TcpTahoeCC> tahoe_cc =
                 std::make_unique<sim::TcpTahoeCC>();
@@ -61,10 +65,6 @@ Response AddConnection::apply_to_simulator(sim::Simulator& simulator) {
                 flow_name, connection, std::move(tahoe_cc), packet_size);
 
             connection->add_flow(flow);
-
-            // TODO: make it better (API change?)
-            sim::Scheduler::get_instance().add<sim::AddDataToConnection>(
-                TimeNs(0), connection, data_to_send);
 
             auto result = simulator.add_connection(connection);
             if (!result.has_value()) {

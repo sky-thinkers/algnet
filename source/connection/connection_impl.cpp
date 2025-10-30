@@ -101,4 +101,15 @@ std::shared_ptr<IHost> ConnectionImpl::get_receiver() const {
     return m_dest.lock();
 }
 
+nlohmann::json ConnectionImpl::to_json() const {
+    nlohmann::json json;
+    json["name"] = m_id;
+    json["sender_id"] = (m_src.expired() ? "expired" : m_src.lock()->get_id());
+    json["receiver_id"] =
+        (m_dest.expired() ? "expired" : m_dest.lock()->get_id());
+    json["data_to_send"] =
+        fmt::format("{}B", std::uint32_t(std::round(m_data_to_send.value())));
+    return json;
+}
+
 }  // namespace sim
