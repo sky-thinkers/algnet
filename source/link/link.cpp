@@ -167,4 +167,15 @@ void Link::start_head_packet_sending() {
         shared_from_this());
 }
 
+nlohmann::json Link::to_json() const {
+    nlohmann::json json;
+    json["name"] = m_id;
+    json["from_id"] = (m_from.expired() ? "deleted" : m_from.lock()->get_id());
+    json["to_id"] = (m_to.expired() ? "deleted" : m_to.lock()->get_id());
+    // TODO: make it better (create to_string method for Speed? )
+    json["speed"] =
+        fmt::format("{}Gbps", uint32_t(std::round(m_speed.value())));
+    return json;
+}
+
 }  // namespace sim

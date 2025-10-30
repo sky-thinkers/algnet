@@ -45,6 +45,8 @@ public:
 
     Id get_id() const final;
 
+    nlohmann::json to_json() const final;
+
 private:
     class Transmit : public Event {
     public:

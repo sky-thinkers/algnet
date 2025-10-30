@@ -19,10 +19,9 @@ nlohmann::json Simulator::to_json() const {
     }
 
     nlohmann::json links = nlohmann::json::array();
-    // TODO: uncomment
-    // for (const auto& link : m_links) {
-    //     links.emplace_back(link->to_json());
-    // }
+    for (const auto& link : m_links) {
+        links.emplace_back(link->to_json());
+    }
 
     nlohmann::json connections = nlohmann::json::array();
     // TODO: uncomment
