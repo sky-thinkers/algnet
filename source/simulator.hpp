@@ -16,13 +16,16 @@
 #include "scenario/scenario.hpp"
 #include "utils/algorithms.hpp"
 #include "utils/validation.hpp"
+#include "websocket/i_serializable.hpp"
 
 namespace sim {
 
-class Simulator {
+class Simulator : public websocket::ISerializable {
 public:
     Simulator();
     ~Simulator() = default;
+
+    nlohmann::json to_json() const final;
 
     Simulator(const Simulator&) = delete;
     Simulator& operator=(const Simulator&) = delete;

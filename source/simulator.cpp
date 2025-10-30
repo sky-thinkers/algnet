@@ -4,6 +4,39 @@ namespace sim {
 
 Simulator::Simulator() : m_state(State::BEFORE_SIMULATION_START) {}
 
+nlohmann::json Simulator::to_json() const {
+    nlohmann::json json;
+
+    // serialize hosts
+    nlohmann::json hosts = nlohmann::json::array();
+    for (const auto& host : m_hosts) {
+        hosts.emplace_back(host->to_json());
+    }
+
+    nlohmann::json switches = nlohmann::json::array();
+    for (const auto& swtch : m_switches) {
+        switches.emplace_back(swtch->to_json());
+    }
+
+    nlohmann::json links = nlohmann::json::array();
+    // TODO: uncomment
+    // for (const auto& link : m_links) {
+    //     links.emplace_back(link->to_json());
+    // }
+
+    nlohmann::json connections = nlohmann::json::array();
+    // TODO: uncomment
+    // for (const auto& connection : m_connections) {
+    //     connections.emplace_back(connection->to_json());
+    // }
+
+    json["hosts"] = std::move(hosts);
+    json["switches"] = std::move(switches);
+    json["links"] = std::move(links);
+    json["connections"] = std::move(connections);
+    return json;
+}
+
 Simulator::AddResult Simulator::add_host(std::shared_ptr<IHost> host) {
     return default_add_object(host, m_hosts);
 }
