@@ -3,8 +3,9 @@
 
 namespace websocket {
 class GetState : public IRequest {
+public:
     GetState() = default;
 
-    [[nodiscard]] Response apply_to_simulator(sim::Simulator& simulator) = 0;
+    [[nodiscard]] Response apply_to_simulator(sim::Simulator& simulator) final;
 };
 }  // namespace websocket

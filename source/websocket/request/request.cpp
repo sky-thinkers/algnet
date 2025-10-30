@@ -29,6 +29,8 @@ RequestOrErr parse_request(const std::string& request) noexcept {
             return AddLink(name, from_id, to_id, speed);
         } else if (type == "Connection") {
             return AddConnection(json);
+        } else if (type == "state") {
+            return GetState();
         }
         return std::unexpected("Unexpected request type: " + type);
     } catch (const std::exception& e) {

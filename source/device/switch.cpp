@@ -76,7 +76,7 @@ TimeNs Switch::process() {
 }
 
 nlohmann::json Switch::to_json() const {
-    return nlohmann::json({"name", get_id()});
+    return nlohmann::json{{"name", get_id()}};
 }
 
 }  // namespace sim
