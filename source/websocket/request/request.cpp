@@ -31,6 +31,8 @@ RequestOrErr parse_request(const std::string& request) noexcept {
             return AddConnection(json);
         } else if (type == "SimulationStateRequest") {
             return GetState();
+        } else if (type == "SimulationResultRequest") {
+            return Simulate(json);
         }
         return std::unexpected("Unexpected request type: " + type);
     } catch (const std::exception& e) {

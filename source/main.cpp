@@ -21,10 +21,9 @@ int main(const int argc, char **argv) {
         cxxopts::value<bool>()->default_value("false"))(
         "metrics-filter", "Fiter for collecting metrics pathes",
         cxxopts::value<std::string>()->default_value(".*"))(
-        "server-port",
-        "Start websocket server at given port",
+        "server-port", "Start websocket server at given port",
         cxxopts::value<unsigned short>()->default_value("0"))("h,help",
-                                                            "Print usage");
+                                                              "Print usage");
 
     auto flags = options.parse(argc, argv);
     auto output_dir = flags["output-dir"].as<std::string>();
@@ -39,14 +38,15 @@ int main(const int argc, char **argv) {
         Logger::get_instance().disable_logs();
     }
 
-    if (flags.contains("server-port") && flags["server-port"].as<unsigned short>() != 0) {
+    sim::MetricsCollector::set_metrics_filter(
+        flags["metrics-filter"].as<std::string>());
+
+    if (flags.contains("server-port") &&
+        flags["server-port"].as<unsigned short>() != 0) {
         unsigned short port = flags["server-port"].as<unsigned short>();
         websocket::session(port);
         return 0;
     }
-
-    sim::MetricsCollector::set_metrics_filter(
-        flags["metrics-filter"].as<std::string>());
 
     sim::YamlParser parser;
     sim::Simulator simulator =

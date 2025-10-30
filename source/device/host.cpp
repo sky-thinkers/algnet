@@ -81,6 +81,15 @@ TimeNs Host::process() {
 
 TimeNs Host::send_packet() {
     TimeNs total_processing_time = TimeNs(1);
+    auto exit_with_finish_notify = [&, this]() {
+        if (m_send_data_scheduler.notify_about_finish(
+                Scheduler::get_instance().get_current_time() +
+                total_processing_time)) {
+            return TimeNs(0);
+        }
+
+        return total_processing_time;
+    };
 
     if (m_nic_buffer.empty()) {
         LOG_WARN("No packets to send");
@@ -88,6 +97,18 @@ TimeNs Host::send_packet() {
     }
     Packet data_packet = m_nic_buffer.front();
     m_nic_buffer.pop();
+
+    Id self_id = get_id();
+    if (data_packet.dest_id == self_id) {
+        LOG_WARN(fmt::format(
+            "Packet {} enqued to host {} have destination set to this host",
+            data_packet.to_string(), self_id));
+
+        if (data_packet.flow != nullptr) {
+            data_packet.flow->update(std::move(data_packet));
+        }
+        return exit_with_finish_notify();
+    }
 
     LOG_INFO(fmt::format("Taken new data packet on host {}. Packet: {}",
                          get_id(), data_packet.to_string()));
@@ -102,13 +123,7 @@ TimeNs Host::send_packet() {
                          data_packet.to_string()));
 
     next_link->schedule_arrival(data_packet);
-    if (m_send_data_scheduler.notify_about_finish(
-            Scheduler::get_instance().get_current_time() +
-            total_processing_time)) {
-        return TimeNs(0);
-    }
-
-    return total_processing_time;
+    return exit_with_finish_notify();
 }
 
 nlohmann::json Host::to_json() const {
