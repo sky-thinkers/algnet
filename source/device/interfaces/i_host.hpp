@@ -1,4 +1,6 @@
 #pragma once
+#include <nlohmann/json.hpp>
+
 #include "i_device.hpp"
 
 namespace sim {
@@ -13,6 +15,8 @@ public:
     // Sends first packet from sending queue to its destination.
     // Returns elapced time. If queue is empty after sending, returns 0
     virtual TimeNs send_packet() = 0;
+
+    virtual nlohmann::json to_json() const = 0;
 };
 
 }  // namespace sim

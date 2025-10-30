@@ -111,4 +111,8 @@ TimeNs Host::send_packet() {
     return total_processing_time;
 }
 
+nlohmann::json Host::to_json() const {
+    return nlohmann::json({"name", get_id()});
+}
+
 }  // namespace sim
