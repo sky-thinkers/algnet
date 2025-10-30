@@ -38,4 +38,6 @@ void HostMock::enqueue_packet([[maybe_unused]] sim::Packet packet) { return; }
 
 TimeNs HostMock::send_packet() { return TimeNs(0); }
 
+nlohmann::json HostMock::to_json() const { return nlohmann::json{}; }
+
 }  // namespace test

@@ -43,4 +43,6 @@ void FlowMock::set_last_rtt(std::optional<TimeNs> rtt) { m_last_rtt = rtt; }
 
 SizeByte FlowMock::get_packet_size() const { return m_packet_size; }
 
+nlohmann::json FlowMock::to_json() const { return nlohmann::json{}; }
+
 }  // namespace test

@@ -34,3 +34,5 @@ SizeByte LinkMock::get_to_ingress_queue_size() const { return SizeByte(0); }
 SizeByte LinkMock::get_max_to_ingress_queue_size() const { return SizeByte(0); }
 
 Id LinkMock::get_id() const { return ""; }
+
+nlohmann::json LinkMock::to_json() const { return nlohmann::json{}; }

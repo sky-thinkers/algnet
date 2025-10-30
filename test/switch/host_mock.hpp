@@ -28,6 +28,7 @@ public:
 
     void enqueue_packet(sim::Packet packet) final;
     TimeNs send_packet() final;
+    nlohmann::json to_json() const final;
 };
 
 }  // namespace test
