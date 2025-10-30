@@ -1,11 +1,10 @@
 #pragma once
-#include <nlohmann/json.hpp>
-
 #include "i_device.hpp"
+#include "websocket/i_serializable.hpp"
 
 namespace sim {
 
-class IHost : public virtual IDevice {
+class IHost : public virtual IDevice, public virtual websocket::ISerializable {
 public:
     virtual ~IHost() = default;
 
@@ -15,8 +14,6 @@ public:
     // Sends first packet from sending queue to its destination.
     // Returns elapced time. If queue is empty after sending, returns 0
     virtual TimeNs send_packet() = 0;
-
-    virtual nlohmann::json to_json() const = 0;
 };
 
 }  // namespace sim
