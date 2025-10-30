@@ -53,6 +53,7 @@ public:
     [[nodiscard]] DeleteResult delete_link(std::shared_ptr<ILink> link);
 
     void set_scenario(Scenario&& scenario);
+    Scenario& get_scenario();
 
     std::vector<std::shared_ptr<IDevice>> get_devices() const;
 

@@ -6,6 +6,7 @@
 #include "connection/mplb/round_robin_mplb.hpp"
 #include "event/add_data_to_connection.hpp"
 #include "parser/parse_utils.hpp"
+#include "scenario/action/send_data_action.hpp"
 #include "scheduler.hpp"
 #include "utils/identifier_factory.hpp"
 
@@ -54,10 +55,6 @@ Response AddConnection::apply_to_simulator(sim::Simulator& simulator) {
                     name, sender, receiver,
                     std::make_shared<sim::RoundRobinMPLB>());
 
-            // ATTENTION: DO NOT PLACE THIS CALL AFTER connection->add_flow
-            // (it will trigger data sending)
-            connection->add_data_to_send(data_to_send);
-
             Id flow_name = fmt::format("{}_flow", name);
             std::unique_ptr<sim::TcpTahoeCC> tahoe_cc =
                 std::make_unique<sim::TcpTahoeCC>();
@@ -70,6 +67,14 @@ Response AddConnection::apply_to_simulator(sim::Simulator& simulator) {
             if (!result.has_value()) {
                 return ErrorResponseData(result.error());
             }
+
+            std::vector<std::weak_ptr<sim::IConnection> > connections = {
+                connection};
+            simulator.get_scenario().add_action(
+                std::make_unique<sim::SendDataAction>(TimeNs(0), data_to_send,
+                                                      std::move(connections), 1,
+                                                      TimeNs(0), TimeNs(0)));
+
             return EmptyMessage;
         }
     } catch (const nlohmann::json::exception& e) {
