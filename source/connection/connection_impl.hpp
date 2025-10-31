@@ -41,6 +41,8 @@ public:
 
     std::shared_ptr<IHost> get_receiver() const override;
 
+    nlohmann::json to_json() const final;
+
 private:
     // Tries to send data using the MPLB-selected flow(s), as long as
     // allowed.

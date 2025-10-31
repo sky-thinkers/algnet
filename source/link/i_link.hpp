@@ -3,13 +3,14 @@
 #include <optional>
 
 #include "device/interfaces/i_device.hpp"
+#include "websocket/i_serializable.hpp"
 
 namespace sim {
 
 /**
  * Unidirectional link from the source to a_next
  */
-class ILink : public Identifiable {
+class ILink : public Identifiable, public virtual websocket::ISerializable {
 public:
     virtual ~ILink() = default;
 

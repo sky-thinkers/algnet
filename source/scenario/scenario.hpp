@@ -4,10 +4,11 @@
 #include <vector>
 
 #include "action/i_action.hpp"
+#include "websocket/i_serializable.hpp"
 
 namespace sim {
 
-class Scenario {
+class Scenario : public virtual websocket::ISerializable {
 public:
     Scenario() = default;
     ~Scenario() = default;
@@ -23,6 +24,7 @@ public:
 
     // Run all actions (schedule them in the simulator)
     void start();
+    nlohmann::json to_json() const final;
 
 private:
     std::vector<std::unique_ptr<IAction>> m_actions;

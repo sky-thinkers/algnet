@@ -75,4 +75,8 @@ TimeNs Switch::process() {
     return total_processing_time;
 }
 
+nlohmann::json Switch::to_json() const {
+    return nlohmann::json{{"name", get_id()}};
+}
+
 }  // namespace sim

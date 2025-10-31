@@ -16,13 +16,16 @@
 #include "scenario/scenario.hpp"
 #include "utils/algorithms.hpp"
 #include "utils/validation.hpp"
+#include "websocket/i_serializable.hpp"
 
 namespace sim {
 
-class Simulator {
+class Simulator : public websocket::ISerializable {
 public:
     Simulator();
     ~Simulator() = default;
+
+    nlohmann::json to_json() const final;
 
     Simulator(const Simulator&) = delete;
     Simulator& operator=(const Simulator&) = delete;
@@ -50,6 +53,7 @@ public:
     [[nodiscard]] DeleteResult delete_link(std::shared_ptr<ILink> link);
 
     void set_scenario(Scenario&& scenario);
+    Scenario& get_scenario();
 
     std::vector<std::shared_ptr<IDevice>> get_devices() const;
 
@@ -76,7 +80,7 @@ private:
         std::unordered_set<std::shared_ptr<T>>& objects_stotage) {
         static_assert(std::is_base_of_v<Identifiable, T>,
                       "T must be implement Identifiable interface");
-        if (m_state != State::BEFORE_SIMULATION_START) {
+        if (m_state == State::SIMULATION_IN_PROGRESS) {
             return std::unexpected(
                 "Addig objects at state different from BEFORE_SIMULATION is "
                 "not "

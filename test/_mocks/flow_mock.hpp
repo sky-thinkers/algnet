@@ -29,6 +29,7 @@ public:
     std::shared_ptr<sim::IHost> get_receiver() const final;
 
     Id get_id() const final;
+    virtual nlohmann::json to_json() const final;
     void set_sending_quota(SizeByte quota);
     void set_last_rtt(std::optional<TimeNs> rtt);
 

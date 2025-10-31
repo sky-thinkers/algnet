@@ -12,7 +12,7 @@ namespace sim {
 class Host : public IHost,
              public RoutingModule,
              public std::enable_shared_from_this<Host> {
-public:
+public: 
     Host(Id id);
     ~Host() = default;
 
@@ -22,6 +22,7 @@ public:
     TimeNs send_packet() final;
 
     void enqueue_packet(Packet packet) final;
+    nlohmann::json to_json() const final;
 
 private:
     std::queue<Packet> m_nic_buffer;

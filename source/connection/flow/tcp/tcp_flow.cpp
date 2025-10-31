@@ -75,7 +75,8 @@ void TcpFlow::update(Packet packet) {
                 break;
             }
         }
-    } else if (packet.dest_id == m_dest.lock()->get_id()) {
+    }
+    if (packet.dest_id == m_dest.lock()->get_id()) {
         switch (type) {
             case PacketType::DATA: {
                 process_data_packet(std::move(packet));
@@ -88,10 +89,6 @@ void TcpFlow::update(Packet packet) {
                 break;
             }
         }
-    } else {
-        LOG_ERROR(
-            fmt::format("Packet {} arrived to unexpected device (see dest_id)",
-                        packet.to_string()));
     }
 }
 

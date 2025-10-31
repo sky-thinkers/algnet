@@ -23,6 +23,7 @@ public:
     // Packets are taken from ingress buffers on a round-robin basis.
     // The iterator over ingress buffers is stored in m_next_link.
     TimeNs process() final;
+    nlohmann::json to_json() const final;
 
 private:
     SchedulingModule<ISwitch, Process> m_process_scheduler;

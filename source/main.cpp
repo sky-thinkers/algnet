@@ -1,3 +1,4 @@
+#include <cstdlib>
 #include <cxxopts.hpp>
 
 #include "logger/logger.hpp"
@@ -5,6 +6,7 @@
 #include "parser/parser.hpp"
 #include "utils/statistics.hpp"
 #include "utils/summary.hpp"
+#include "websocket/session.hpp"
 
 int main(const int argc, char **argv) {
     cxxopts::Options options("NoNS", "Discrete-event based simulator");
@@ -18,8 +20,10 @@ int main(const int argc, char **argv) {
         "no-plots", "Disables plots generation",
         cxxopts::value<bool>()->default_value("false"))(
         "metrics-filter", "Fiter for collecting metrics pathes",
-        cxxopts::value<std::string>()->default_value(".*"))("h,help",
-                                                            "Print usage");
+        cxxopts::value<std::string>()->default_value(".*"))(
+        "server-port", "Start websocket server at given port",
+        cxxopts::value<unsigned short>()->default_value("0"))("h,help",
+                                                              "Print usage");
 
     auto flags = options.parse(argc, argv);
     auto output_dir = flags["output-dir"].as<std::string>();
@@ -36,6 +40,13 @@ int main(const int argc, char **argv) {
 
     sim::MetricsCollector::set_metrics_filter(
         flags["metrics-filter"].as<std::string>());
+
+    if (flags.contains("server-port") &&
+        flags["server-port"].as<unsigned short>() != 0) {
+        unsigned short port = flags["server-port"].as<unsigned short>();
+        websocket::session(port);
+        return 0;
+    }
 
     sim::YamlParser parser;
     sim::Simulator simulator =

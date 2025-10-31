@@ -19,7 +19,6 @@ struct LinkInitArgs {
         std::unexpected("Missing max from egress buffer size");
     utils::StrExpected<SizeByte> max_to_ingress_buffer_size =
         std::unexpected("Missing max to ingress buffer size");
-    ;
 };
 
 class Link : public ILink, public std::enable_shared_from_this<Link> {
@@ -45,6 +44,8 @@ public:
     SizeByte get_max_to_ingress_queue_size() const final;
 
     Id get_id() const final;
+
+    nlohmann::json to_json() const final;
 
 private:
     class Transmit : public Event {
