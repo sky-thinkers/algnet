@@ -80,7 +80,7 @@ private:
         std::unordered_set<std::shared_ptr<T>>& objects_stotage) {
         static_assert(std::is_base_of_v<Identifiable, T>,
                       "T must be implement Identifiable interface");
-        if (m_state != State::BEFORE_SIMULATION_START) {
+        if (m_state == State::SIMULATION_IN_PROGRESS) {
             return std::unexpected(
                 "Addig objects at state different from BEFORE_SIMULATION is "
                 "not "

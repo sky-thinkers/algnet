@@ -17,7 +17,7 @@ Response AddLink::apply_to_simulator(sim::Simulator& simulator) {
             fmt::format("Could not find 'from' device with id {}", m_from));
     }
     std::shared_ptr<sim::IDevice> to_device =
-        idf.get_object<sim::IDevice>(m_from);
+        idf.get_object<sim::IDevice>(m_to);
     if (to_device == nullptr) {
         return ErrorResponseData(
             fmt::format("Could not find 'to' device with id {}", m_to));

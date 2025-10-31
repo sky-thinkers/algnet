@@ -93,7 +93,7 @@ TimeNs Host::send_packet() {
 
     if (m_nic_buffer.empty()) {
         LOG_WARN("No packets to send");
-        return total_processing_time;
+        return exit_with_finish_notify();
     }
     Packet data_packet = m_nic_buffer.front();
     m_nic_buffer.pop();
@@ -116,7 +116,7 @@ TimeNs Host::send_packet() {
     auto next_link = get_link_to_destination(data_packet);
     if (next_link == nullptr) {
         LOG_WARN("Link to send data packet does not exist");
-        return total_processing_time;
+        return exit_with_finish_notify();
     }
 
     LOG_INFO(fmt::format("Sent new packet from host. Packet: {}", get_id(),
