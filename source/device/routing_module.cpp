@@ -126,6 +126,15 @@ std::set<std::shared_ptr<ILink>> RoutingModule::get_outlinks() {
     return shared_outlinks;
 }
 
+std::set<std::shared_ptr<ILink>> RoutingModule::get_inlinks() {
+    correctify_inlinks();
+    std::set<std::shared_ptr<ILink>> shared_inlinks;
+    std::transform(m_inlinks.begin(), m_inlinks.end(),
+                   std::inserter(shared_inlinks, shared_inlinks.begin()),
+                   [](auto link) { return link.lock(); });
+    return shared_inlinks;
+}
+
 void RoutingModule::correctify_inlinks() {
     std::size_t erased_count = std::erase_if(
         m_inlinks, [](std::weak_ptr<ILink> link) { return link.expired(); });

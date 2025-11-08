@@ -32,6 +32,8 @@ TimeNs HostMock::process() { return TimeNs(1); }
 
 std::set<std::shared_ptr<sim::ILink>> HostMock::get_outlinks() { return {}; }
 
+std::set<std::shared_ptr<sim::ILink>> HostMock::get_inlinks() { return {}; }
+
 Id HostMock::get_id() const { return ""; }
 
 void HostMock::enqueue_packet([[maybe_unused]] sim::Packet packet) { return; }

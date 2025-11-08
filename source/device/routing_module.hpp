@@ -23,6 +23,7 @@ public:
     std::shared_ptr<ILink> next_inlink() final;
     std::shared_ptr<ILink> get_link_to_destination(Packet packet) const final;
     std::set<std::shared_ptr<ILink>> get_outlinks() final;
+    std::set<std::shared_ptr<ILink>> get_inlinks() final;
 
     void correctify_inlinks();
     void correctify_outlinks();

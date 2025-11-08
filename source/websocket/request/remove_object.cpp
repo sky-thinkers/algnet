@@ -60,6 +60,13 @@ Response RemoveObject::apply_to_simulator(
             fmt::format("Object with id {} not found", m_id));
     }
 
+    std::function<std::set<std::shared_ptr<sim::ILink> >(
+        std::shared_ptr<sim::IDevice> device)>
+        get_deleting_links = [&](std::shared_ptr<sim::IDevice> device) {
+            auto result = device->get_outlinks();
+            return result;
+        };
+
     OnObject<sim::IHost> on_host =
         [&]([[maybe_unused]] std::shared_ptr<sim::IHost> host) {
             Id id = host->get_id();
