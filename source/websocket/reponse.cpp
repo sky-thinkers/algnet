@@ -5,8 +5,7 @@
 namespace websocket {
 
 Response ErrorResponseData(const std::string& err) noexcept {
-    const nlohmann::json json = {{"type", "ErrorResponseData"}, {"err", err}};
-    return json.dump();
+    return {{"type", "ErrorResponseData"}, {"err", err}};
 }
 
 }  // namespace websocket

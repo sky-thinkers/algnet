@@ -1,13 +1,13 @@
 #pragma once
-#include <string>
+#include <nlohmann/json.hpp>
 
 #include "types.hpp"
 
 namespace websocket {
 
-using Response = std::string;
+using Response = nlohmann::json;
 
-const Response EmptyMessage = "{\"type\": \"Empty\"}";
+const Response EmptyMessage = {{"type", "Empty"}};
 
 Response ErrorResponseData(const std::string& err) noexcept;
 

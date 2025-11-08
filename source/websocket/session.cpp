@@ -82,7 +82,7 @@ void session(unsigned short port) {
 
             Response response = handle_request(message, simulator);
 
-            ws.write(net::buffer(std::move(response)));
+            ws.write(net::buffer(response.dump()));
         }
     } catch (beast::system_error const& se) {
         // This indicates that the session was closed
