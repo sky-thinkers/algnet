@@ -8,12 +8,13 @@
 #include "add_link.hpp"
 #include "add_switch.hpp"
 #include "get_state.hpp"
+#include "remove_object.hpp"
 #include "simulate.hpp"
 
 namespace websocket {
 
 using Request = std::variant<AddHost, AddSwitch, AddLink, AddConnection,
-                             GetState, Simulate>;
+                             GetState, Simulate, RemoveObject>;
 using RequestOrErr = std::expected<Request, std::string>;
 
 RequestOrErr parse_request(const std::string& request) noexcept;

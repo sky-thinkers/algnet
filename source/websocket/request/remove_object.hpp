@@ -1,5 +1,6 @@
 #pragma once
 #include "i_request.hpp"
+#include "types.hpp"
 
 namespace websocket {
 class RemoveObject : public IRequest {
