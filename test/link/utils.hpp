@@ -29,6 +29,7 @@ public:
     std::shared_ptr<sim::ILink> get_link_to_destination(
         sim::Packet packet) const final;
     std::set<std::shared_ptr<sim::ILink>> get_outlinks() final;
+    std::set<std::shared_ptr<sim::ILink>> get_inlinks() final;
     bool notify_about_arrival(TimeNs arrival_time) final;
 
     TimeNs process() final;
