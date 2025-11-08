@@ -146,13 +146,18 @@ Response RemoveObject::apply_to_simulator(
     OnObject<sim::ILink> on_link =
         [&]([[maybe_unused]] std::shared_ptr<sim::ILink> link) {
             Id id = link->get_id();
+            if (auto result = sim.delete_link(link); !result) {
+                return ErrorResponseData(result.error());
+            }
             return RemovedObjectList({id});
         };
 
     OnObject<sim::IConnection> on_connection =
         [&]([[maybe_unused]] std::shared_ptr<sim::IConnection> connection) {
             Id id = connection->get_id();
-            LOG_INFO(fmt::format("Connection {} removed!", id));
+            if (auto result = sim.delete_connection(connection); !result) {
+                return ErrorResponseData(result.error());
+            }
             return RemovedObjectList({id});
         };
 
