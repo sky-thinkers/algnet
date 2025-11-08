@@ -1,12 +1,14 @@
 #include "remove_object.hpp"
 
 #include <functional>
+#include <stack>
 #include <variant>
 
 #include "connection/i_connection.hpp"
 #include "device/interfaces/i_host.hpp"
 #include "device/interfaces/i_switch.hpp"
 #include "link/i_link.hpp"
+#include "transaction.hpp"
 #include "utils/identifier_factory.hpp"
 
 namespace websocket {
@@ -60,31 +62,90 @@ Response RemoveObject::apply_to_simulator(
             fmt::format("Object with id {} not found", m_id));
     }
 
-    std::function<std::set<std::shared_ptr<sim::ILink> >(
-        std::shared_ptr<sim::IDevice> device)>
-        get_deleting_links = [&](std::shared_ptr<sim::IDevice> device) {
-            auto result = device->get_outlinks();
+    using LinkSet = std::set<std::shared_ptr<sim::ILink>>;
+
+    std::function<LinkSet(std::shared_ptr<sim::IDevice> device)>
+        get_deleting_links = [](std::shared_ptr<sim::IDevice> device) {
+            LinkSet result = device->get_inlinks();
+            LinkSet outlinks = device->get_inlinks();
+            result.insert(outlinks.begin(), outlinks.end());
             return result;
         };
 
     OnObject<sim::IHost> on_host =
         [&]([[maybe_unused]] std::shared_ptr<sim::IHost> host) {
-            Id id = host->get_id();
-            LOG_INFO(fmt::format("Host {} removed!", id));
-            return RemovedObjectList({id});
+            Transaction<std::string> transaction;
+            std::vector<Id> deleted_objects;
+
+            for (auto link : get_deleting_links(host)) {
+                transaction.emplace_back(
+                    [&]() {
+                        deleted_objects.emplace_back(link->get_id());
+                        return sim.delete_link(link);
+                    },
+                    [&] { (void)sim.add_link(link); });
+            }
+
+            for (std::shared_ptr<sim::IConnection> connection :
+                 idf.get_objects<sim::IConnection>()) {
+                if (connection->get_sender() == host ||
+                    connection->get_receiver() == host) {
+                    transaction.emplace_back(
+                        [&]() {
+                            deleted_objects.emplace_back(connection->get_id());
+                            return sim.delete_connection(connection);
+                        },
+                        [&]() { (void)sim.add_connection(connection); });
+                }
+            }
+
+            transaction.emplace_back(
+                [&]() {
+                    deleted_objects.emplace_back(host->get_id());
+                    return sim.delete_host(host);
+                },
+                [&]() { (void)sim.add_host(host); });
+
+            if (auto result = transaction.apply_transaction();
+                !result.has_value()) {
+                return ErrorResponseData(result.error());
+            }
+
+            return RemovedObjectList(deleted_objects);
         };
 
     OnObject<sim::ISwitch> on_switch =
         [&]([[maybe_unused]] std::shared_ptr<sim::ISwitch> swtch) {
-            Id id = swtch->get_id();
-            LOG_INFO(fmt::format("Switch {} removed!", id));
-            return RemovedObjectList({id});
+            Transaction<std::string> transaction;
+            std::vector<Id> deleted_objects;
+
+            for (auto link : get_deleting_links(swtch)) {
+                transaction.emplace_back(
+                    [&]() {
+                        deleted_objects.emplace_back(link->get_id());
+                        return sim.delete_link(link);
+                    },
+                    [&] { (void)sim.add_link(link); });
+            }
+
+            transaction.emplace_back(
+                [&]() {
+                    deleted_objects.emplace_back(swtch->get_id());
+                    return sim.delete_switch(swtch);
+                },
+                [&]() { (void)sim.add_switch(swtch); });
+
+            if (auto result = transaction.apply_transaction();
+                !result.has_value()) {
+                return ErrorResponseData(result.error());
+            }
+
+            return RemovedObjectList(deleted_objects);
         };
 
     OnObject<sim::ILink> on_link =
         [&]([[maybe_unused]] std::shared_ptr<sim::ILink> link) {
             Id id = link->get_id();
-            LOG_INFO(fmt::format("Link {} removed!", id));
             return RemovedObjectList({id});
         };
 
