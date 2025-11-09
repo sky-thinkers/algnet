@@ -37,10 +37,10 @@ TcpFlow::TcpFlow(Id a_id, std::shared_ptr<IConnection> a_conn,
       m_sent_data_size(0),
       m_next_packet_num(0) {
     if (m_src.lock() == nullptr) {
-        throw std::invalid_argument("Sender for TcpFlow is nullptr");
+        LOG_WARN(fmt::format("Sender for TcpFlow {} is nullptr at construction", m_id));
     }
     if (m_dest.lock() == nullptr) {
-        throw std::invalid_argument("Receiver for TcpFlow is nullptr");
+        LOG_WARN(fmt::format("Receiver for TcpFlow {} is nullptr at construction", m_id));
     }
     initialize_flag_manager();
 }
@@ -58,7 +58,18 @@ void TcpFlow::update(Packet packet) {
                               to_string(), packet.to_string()));
         return;
     }
-    if (packet.dest_id == m_src.lock()->get_id()) {
+    auto src_ptr = m_src.lock();
+    auto dest_ptr = m_dest.lock();
+    if (!src_ptr) {
+        LOG_ERROR(fmt::format("TcpFlow::update: sender expired for flow {}; ignore packet {}", to_string(), packet.to_string()));
+        return;
+    }
+    if (!dest_ptr) {
+        LOG_ERROR(fmt::format("TcpFlow::update: receiver expired for flow {}; ignore packet {}", to_string(), packet.to_string()));
+        return;
+    }
+
+    if (packet.dest_id == src_ptr->get_id()) {
         switch (type) {
             case PacketType::ACK: {
                 process_single_ack(std::move(packet));
@@ -75,7 +86,7 @@ void TcpFlow::update(Packet packet) {
                 break;
             }
         }
-    } else if (packet.dest_id == m_dest.lock()->get_id()) {
+    } else if (packet.dest_id == dest_ptr->get_id()) {
         switch (type) {
             case PacketType::DATA: {
                 process_data_packet(std::move(packet));
@@ -172,9 +183,23 @@ const BaseFlagManager& TcpFlow::get_flag_manager() const {
     return m_flag_manager;
 }
 
-std::shared_ptr<IHost> TcpFlow::get_sender() const { return m_src.lock(); }
+std::shared_ptr<IHost> TcpFlow::get_sender() const {
+    auto ptr = m_src.lock();
+    if (!ptr) {
+        LOG_WARN(fmt::format("TcpFlow::get_sender: sender expired for flow {}", m_id));
+        return nullptr;
+    }
+    return ptr;
+}
 
-std::shared_ptr<IHost> TcpFlow::get_receiver() const { return m_dest.lock(); }
+std::shared_ptr<IHost> TcpFlow::get_receiver() const {
+    auto ptr = m_dest.lock();
+    if (!ptr) {
+        LOG_WARN(fmt::format("TcpFlow::get_receiver: receiver expired for flow {}", m_id));
+        return nullptr;
+    }
+    return ptr;
+}
 
 Id TcpFlow::get_id() const { return m_id; }
 
@@ -182,10 +207,20 @@ std::string TcpFlow::to_string() const {
     std::ostringstream oss;
     oss << "[TcpFlow; ";
     oss << "Id:" << m_id;
-    oss << ", src id: "
-        << (m_src.expired() ? "expired" : m_src.lock()->get_id());
-    oss << ", dest id: "
-        << (m_dest.expired() ? "expired" : m_dest.lock()->get_id());
+    oss << ", src id: ";
+    if (m_src.expired()) {
+        oss << "expired";
+    } else {
+        auto p = m_src.lock();
+        oss << (p ? p->get_id() : "null");
+    }
+    oss << ", dest id: ";
+    if (m_dest.expired()) {
+        oss << "expired";
+    } else {
+        auto p = m_dest.lock();
+        oss << (p ? p->get_id() : "null");
+    }
     oss << ", CC module: " << m_cc->to_string();
     oss << ", packet size: " << m_packet_size;
     oss << ", packets in flight: " << m_packets_in_flight;
@@ -222,6 +257,10 @@ public:
             return;
         }
         auto flow = m_flow.lock();
+        if (!flow) {
+            LOG_ERROR("SendAtTime: flow.lock() returned nullptr");
+            return;
+        }
         flow->send_packet_now(std::move(m_packet));
     }
 
@@ -242,6 +281,10 @@ public:
             return;
         }
         auto flow = m_flow.lock();
+        if (!flow) {
+            LOG_ERROR("Timeout: flow.lock() returned nullptr");
+            return;
+        }
 
         if (flow->m_ack_monitor.is_confirmed(m_packet_num)) {
             return;
@@ -321,8 +364,14 @@ Packet TcpFlow::generate_data_packet(PacketNum packet_num) {
     set_avg_rtt_if_present(packet);
     packet.size = m_packet_size;
     packet.flow = this;
-    packet.source_id = get_sender()->get_id();
-    packet.dest_id = get_receiver()->get_id();
+    auto sender = get_sender();
+    auto receiver = get_receiver();
+    if (!sender || !receiver) {
+        LOG_ERROR("TcpFlow::generate_data_packet: sender or receiver is null; returning empty packet");
+        return packet;
+    }
+    packet.source_id = sender->get_id();
+    packet.dest_id = receiver->get_id();
     packet.packet_num = packet_num;
     packet.delivered_data_size_at_origin = m_delivered_data_size;
     packet.generated_time = Scheduler::get_instance().get_current_time();
@@ -368,7 +417,16 @@ void TcpFlow::send_packet_now(Packet packet) {
     m_sent_data_size += packet.size;
 
     packet.sent_time = current_time;
-    m_src.lock()->enqueue_packet(std::move(packet));
+    if (m_src.expired()) {
+        LOG_WARN(fmt::format("TcpFlow::send_packet_now: sender expired for flow {}; dropping packet {}", to_string(), packet.to_string()));
+        return;
+    }
+    auto sender = m_src.lock();
+    if (!sender) {
+        LOG_WARN("TcpFlow::send_packet_now: sender.lock() returned nullptr; dropping packet");
+        return;
+    }
+    sender->enqueue_packet(std::move(packet));
 }
 
 void TcpFlow::retransmit_packet(PacketNum packet_num) {
@@ -389,7 +447,16 @@ void TcpFlow::process_data_packet(Packet packet) {
     }
     Packet ack = create_ack(std::move(packet));
 
-    m_dest.lock()->enqueue_packet(ack);
+    if (m_dest.expired()) {
+        LOG_WARN(fmt::format("TcpFlow::process_data_packet: receiver expired for flow {}; cannot deliver ack {}", to_string(), ack.to_string()));
+        return;
+    }
+    auto dest = m_dest.lock();
+    if (!dest) {
+        LOG_WARN("TcpFlow::process_data_packet: receiver.lock() returned nullptr; cannot deliver ack");
+        return;
+    }
+    dest->enqueue_packet(ack);
 }
 
 Packet TcpFlow::create_ack(Packet data) {
@@ -397,8 +464,21 @@ Packet TcpFlow::create_ack(Packet data) {
     ack.packet_num = (M_COLLECTIVE_ACK_SUPPORT
                           ? m_data_packets_monitor.get_last_confirmed().value()
                           : data.packet_num);
-    ack.source_id = m_dest.lock()->get_id();
-    ack.dest_id = m_src.lock()->get_id();
+    if (m_dest.expired() || m_src.expired()) {
+        LOG_WARN("TcpFlow::create_ack: source or dest expired; returning minimal ack");
+        ack.source_id = "";
+        ack.dest_id = "";
+    } else {
+        auto dest = m_dest.lock();
+        auto src = m_src.lock();
+        if (dest && src) {
+            ack.source_id = dest->get_id();
+            ack.dest_id = src->get_id();
+        } else {
+            ack.source_id = "";
+            ack.dest_id = "";
+        }
+    }
     ack.size = SizeByte(1);
     ack.flow = this;
     ack.generated_time = data.generated_time;

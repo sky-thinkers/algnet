@@ -11,8 +11,12 @@ void Process::operator()() {
     if (m_device.expired()) {
         return;
     }
+    auto dev = m_device.lock();
+    if (!dev) {
+        return;
+    }
 
-    TimeNs process_time = m_device.lock()->process();
+    TimeNs process_time = dev->process();
 
     // TODO: think about better way of cancelling event rescheduling and
     // signaling errors

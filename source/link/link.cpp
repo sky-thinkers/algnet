@@ -71,8 +71,12 @@ std::shared_ptr<IDevice> Link::get_from() const {
         LOG_WARN("Source device pointer is expired");
         return nullptr;
     }
-
-    return m_from.lock();
+    auto ptr = m_from.lock();
+    if (!ptr) {
+        LOG_WARN("Link::get_from: m_from.lock() returned nullptr");
+        return nullptr;
+    }
+    return ptr;
 };
 
 std::shared_ptr<IDevice> Link::get_to() const {
@@ -80,8 +84,12 @@ std::shared_ptr<IDevice> Link::get_to() const {
         LOG_WARN("Destination device pointer is expired");
         return nullptr;
     }
-
-    return m_to.lock();
+    auto ptr = m_to.lock();
+    if (!ptr) {
+        LOG_WARN("Link::get_to: m_to.lock() returned nullptr");
+        return nullptr;
+    }
+    return ptr;
 };
 
 SizeByte Link::get_from_egress_queue_size() const {
@@ -107,10 +115,15 @@ Link::Arrive::Arrive(TimeNs a_time, std::weak_ptr<Link> a_link, Packet a_packet)
 
 void Link::Arrive::operator()() {
     if (m_link.expired()) {
+        LOG_WARN("Link::Arrive: link expired before arrival");
         return;
     }
-
-    m_link.lock()->arrive(std::move(m_paket));
+    auto link = m_link.lock();
+    if (!link) {
+        LOG_WARN("Link::Arrive: link.lock() returned nullptr");
+        return;
+    }
+    link->arrive(std::move(m_paket));
 }
 
 Link::Transmit::Transmit(TimeNs a_time, std::weak_ptr<Link> a_link)
@@ -118,10 +131,15 @@ Link::Transmit::Transmit(TimeNs a_time, std::weak_ptr<Link> a_link)
 
 void Link::Transmit::operator()() {
     if (m_link.expired()) {
+        LOG_WARN("Link::Transmit: link expired before transmit");
         return;
     }
-
-    m_link.lock()->transmit();
+    auto link = m_link.lock();
+    if (!link) {
+        LOG_WARN("Link::Transmit: link.lock() returned nullptr");
+        return;
+    }
+    link->transmit();
 }
 
 TimeNs Link::get_transmission_delay(const Packet& packet) const {
@@ -153,9 +171,17 @@ void Link::arrive(Packet packet) {
                   " lost");
         return;
     }
-
-    m_to.lock()->notify_about_arrival(
-        Scheduler::get_instance().get_current_time());
+    if (m_to.expired()) {
+        LOG_WARN("Link::arrive: destination device pointer expired; packet " +
+                 packet.to_string() + " dropped (no receiver)");
+        return;
+    }
+    auto to = m_to.lock();
+    if (!to) {
+        LOG_WARN("Link::arrive: destination device lock returned nullptr");
+        return;
+    }
+    to->notify_about_arrival(Scheduler::get_instance().get_current_time());
     LOG_INFO("Packet arrived to the next device. Packet: " +
              packet.to_string());
 };

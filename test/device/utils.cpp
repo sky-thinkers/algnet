@@ -25,8 +25,16 @@ void TestLink::schedule_arrival([[maybe_unused]] sim::Packet packet) {};
 
 std::optional<sim::Packet> TestLink::get_packet() { return {packet}; };
 
-std::shared_ptr<sim::IDevice> TestLink::get_from() const { return src.lock(); };
-std::shared_ptr<sim::IDevice> TestLink::get_to() const { return dst.lock(); };
+std::shared_ptr<sim::IDevice> TestLink::get_from() const {
+    auto p = src.lock();
+    if (!p) return nullptr;
+    return p;
+};
+std::shared_ptr<sim::IDevice> TestLink::get_to() const {
+    auto p = dst.lock();
+    if (!p) return nullptr;
+    return p;
+};
 
 SizeByte TestLink::get_from_egress_queue_size() const { return SizeByte(0); }
 SizeByte TestLink::get_max_from_egress_buffer_size() const {

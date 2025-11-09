@@ -33,7 +33,9 @@ const sim::BaseFlagManager& FlowMock::get_flag_manager() const {
 
 std::shared_ptr<sim::IHost> FlowMock::get_sender() const { return nullptr; }
 std::shared_ptr<sim::IHost> FlowMock::get_receiver() const {
-    return m_receiver.lock();
+    auto p = m_receiver.lock();
+    if (!p) return nullptr;
+    return p;
 }
 
 Id FlowMock::get_id() const { return ""; }

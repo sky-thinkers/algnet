@@ -11,8 +11,12 @@ void SendData::operator()() {
     if (m_device.expired()) {
         return;
     }
+    auto dev = m_device.lock();
+    if (!dev) {
+        return;
+    }
 
-    TimeNs process_time = m_device.lock()->send_packet();
+    TimeNs process_time = dev->send_packet();
 
     // TODO: think about better way of cancelling event rescheduling
     if (process_time == TimeNs(0)) {

@@ -20,7 +20,10 @@ void SendDataAction::schedule() {
 
     for (auto& weak : m_conns) {
         auto conn = weak.lock();
-        if (!conn) throw std::runtime_error("Expired connection in action");
+        if (!conn) {
+            LOG_WARN("Expired connection in SendDataAction; skipping");
+            continue;
+        }
 
         std::uint64_t seed = std::hash<std::string>{}(conn->get_id());
         std::mt19937_64 rng(seed);

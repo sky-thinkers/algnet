@@ -95,9 +95,18 @@ std::shared_ptr<ILink> RoutingModule::get_link_to_destination(
 
     int cumulative_weight = 0;
     for (const auto& [link, weight] : link_map) {
+        if (link.expired()) {
+            LOG_WARN("RoutingModule::get_link_to_destination: encountered expired link while selecting route");
+            continue;
+        }
         cumulative_weight += weight;
         if (hash < cumulative_weight) {
-            return link.lock();
+            auto ptr = link.lock();
+            if (!ptr) {
+                LOG_WARN("RoutingModule::get_link_to_destination: link.lock() returned nullptr");
+                continue;
+            }
+            return ptr;
         }
     }
 
@@ -114,15 +123,23 @@ std::shared_ptr<ILink> RoutingModule::next_inlink() {
         correctify_inlinks();
         return next_inlink();
     }
-    return inlink.lock();
+    auto ptr = inlink.lock();
+    if (!ptr) {
+        LOG_WARN("RoutingModule::next_inlink: inlink.lock() returned nullptr; correcting and retrying");
+        correctify_inlinks();
+        return next_inlink();
+    }
+    return ptr;
 }
 
 std::set<std::shared_ptr<ILink>> RoutingModule::get_outlinks() {
     correctify_outlinks();
     std::set<std::shared_ptr<ILink>> shared_outlinks;
-    std::transform(m_outlinks.begin(), m_outlinks.end(),
-                   std::inserter(shared_outlinks, shared_outlinks.begin()),
-                   [](auto link) { return link.lock(); });
+    for (const auto& wlink : m_outlinks) {
+        if (wlink.expired()) continue;
+        auto ptr = wlink.lock();
+        if (ptr) shared_outlinks.insert(ptr);
+    }
     return shared_outlinks;
 }
 

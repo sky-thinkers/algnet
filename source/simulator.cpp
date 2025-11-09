@@ -42,8 +42,16 @@ Simulator::AddResult Simulator::add_link(std::shared_ptr<ILink> link) {
     }
     auto a_from = link->get_from();
     auto a_to = link->get_to();
-    a_from->add_outlink(link);
-    a_to->add_inlink(link);
+    if (!a_from) {
+        LOG_WARN("Simulator::add_link: link source is expired or null; skipping add_outlink");
+    } else {
+        a_from->add_outlink(link);
+    }
+    if (!a_to) {
+        LOG_WARN("Simulator::add_link: link destination is expired or null; skipping add_inlink");
+    } else {
+        a_to->add_inlink(link);
+    }
     return {};
 }
 
@@ -57,8 +65,16 @@ Simulator::DeleteResult Simulator::delete_link(std::shared_ptr<ILink> link) {
     }
     auto a_from = link->get_from();
     auto a_to = link->get_to();
-    a_from->add_outlink(link);
-    a_to->add_inlink(link);
+    if (!a_from) {
+        LOG_WARN("Simulator::delete_link: link source is expired or null; skipping outlink updates");
+    } else {
+        a_from->add_outlink(link);
+    }
+    if (!a_to) {
+        LOG_WARN("Simulator::delete_link: link destination is expired or null; skipping inlink updates");
+    } else {
+        a_to->add_inlink(link);
+    }
     return {};
 }
 
@@ -87,8 +103,17 @@ void Simulator::recalculate_paths() {
             bfs(dynamic_pointer_cast<IRoutingDevice>(src_device));
         for (auto [dest_device_id, links] : routing_table) {
             for (auto [link, paths_count] : links) {
-                src_device->update_routing_table(dest_device_id, link.lock(),
-                                                 paths_count);
+                    if (link.expired()) {
+                        LOG_WARN("Simulator::recalculate_paths: encountered expired link in routing table; skipping");
+                        continue;
+                    }
+                    auto ptr = link.lock();
+                    if (!ptr) {
+                        LOG_WARN("Simulator::recalculate_paths: link.lock() returned nullptr; skipping");
+                        continue;
+                    }
+                    src_device->update_routing_table(dest_device_id, ptr,
+                                                     paths_count);
             }
         }
     }

@@ -5,9 +5,17 @@ LinkMock::LinkMock(std::weak_ptr<sim::IDevice> a_from,
     : m_from(a_from), m_to(a_to), m_arrived_packets(), m_ingress_packet() {}
 
 std::shared_ptr<sim::IDevice> LinkMock::get_from() const {
-    return m_from.lock();
+    auto p = m_from.lock();
+    if (!p) {
+        return nullptr;
+    }
+    return p;
 }
-std::shared_ptr<sim::IDevice> LinkMock::get_to() const { return m_to.lock(); }
+std::shared_ptr<sim::IDevice> LinkMock::get_to() const {
+    auto p = m_to.lock();
+    if (!p) return nullptr;
+    return p;
+}
 
 void LinkMock::schedule_arrival(sim::Packet a_packet) {
     m_arrived_packets.push_back(a_packet);

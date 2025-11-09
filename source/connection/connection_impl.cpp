@@ -94,11 +94,21 @@ void ConnectionImpl::send_data() {
 }
 
 std::shared_ptr<IHost> ConnectionImpl::get_sender() const {
-    return m_src.lock();
+    auto ptr = m_src.lock();
+    if (!ptr) {
+        LOG_WARN(fmt::format("Sender for connection {} expired", m_id));
+        return nullptr;
+    }
+    return ptr;
 }
 
 std::shared_ptr<IHost> ConnectionImpl::get_receiver() const {
-    return m_dest.lock();
+    auto ptr = m_dest.lock();
+    if (!ptr) {
+        LOG_WARN(fmt::format("Receiver for connection {} expired", m_id));
+        return nullptr;
+    }
+    return ptr;
 }
 
 }  // namespace sim

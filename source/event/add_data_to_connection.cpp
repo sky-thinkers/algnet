@@ -12,7 +12,12 @@ void AddDataToConnection::operator()() {
         LOG_ERROR("Connection expired; can't add data to it");
         return;
     }
-    m_connection.lock()->add_data_to_send(m_size);
+    auto conn = m_connection.lock();
+    if (!conn) {
+        LOG_ERROR("Connection expired (lock returned nullptr); can't add data to it");
+        return;
+    }
+    conn->add_data_to_send(m_size);
 }
 
 }  // namespace sim
