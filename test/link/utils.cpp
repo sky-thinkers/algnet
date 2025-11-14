@@ -27,6 +27,7 @@ bool DeviceMock::update_routing_table(
 }
 
 std::set<std::shared_ptr<sim::ILink>> DeviceMock::get_outlinks() { return {}; }
+std::set<std::shared_ptr<sim::ILink>> DeviceMock::get_inlinks() { return {}; }
 
 std::shared_ptr<sim::ILink> DeviceMock::get_link_to_destination(
     [[maybe_unused]] sim::Packet packet) const {

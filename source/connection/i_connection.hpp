@@ -6,13 +6,15 @@
 #include "connection/flow/i_flow.hpp"
 #include "mplb/i_mplb.hpp"
 #include "types.hpp"
+#include "websocket/i_serializable.hpp"
 
 namespace sim {
 
 // Connection is a logical path between sender and receiver.
 // It owns one or more flows and delegates flow selection to an MPLB.
 // MPLB (Multi-Path Load Balancer) decides which flow to use for sending.
-class IConnection : public Identifiable {
+class IConnection : public Identifiable,
+                    public virtual websocket::ISerializable {
 public:
     virtual ~IConnection() = default;
 

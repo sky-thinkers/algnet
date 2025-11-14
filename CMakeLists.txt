@@ -20,10 +20,18 @@ file(GLOB_RECURSE src "source/*.cpp")
 list(REMOVE_ITEM src "${CMAKE_CURRENT_SOURCE_DIR}/source/main.cpp")
 file(GLOB_RECURSE tests "test/*.cpp")
 
+# set(Boost_USE_STATIC_LIBS OFF)
+# set(Boost_USE_MULTITHREADED OFF)
+# set(Boost_USE_STATIC_RUNTIME OFF)
+# set(BOOST_ENABLE_CMAKE ON)
+find_package(Boost REQUIRED COMPONENTS)
+
 include_directories(
     ${CMAKE_SOURCE_DIR}/source/
     ${CMAKE_SOURCE_DIR}/external/spdlog/include/
     ${CMAKE_SOURCE_DIR}/external/cxxopts/include/
+    ${CMAKE_SOURCE_DIR}/external/nlohmann_json/include/
+    ${Boost_INCLUDE_DIRS}
 )
 
 add_subdirectory(${CMAKE_SOURCE_DIR}/external/yaml-cpp/)
@@ -49,7 +57,7 @@ if(BUILD_TESTS)
     add_subdirectory(external/googletest)
     set(TEST_NAME "test_nons")
     add_executable(${TEST_NAME} ${src} ${tests})
-    
+
     target_include_directories(${TEST_NAME} PRIVATE ${CMAKE_SOURCE_DIR}/external/yaml-cpp/include)
     target_include_directories(${TEST_NAME} PUBLIC "source")
 

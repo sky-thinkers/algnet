@@ -1,8 +1,54 @@
 #include "simulator.hpp"
 
+#include "parser/parse_utils.hpp"
+
 namespace sim {
 
 Simulator::Simulator() : m_state(State::BEFORE_SIMULATION_START) {}
+
+nlohmann::json Simulator::to_json() const {
+    nlohmann::json json;
+
+    // serialize hosts
+    nlohmann::json hosts = nlohmann::json::array();
+    for (const auto& host : m_hosts) {
+        hosts.emplace_back(host->to_json());
+    }
+
+    nlohmann::json switches = nlohmann::json::array();
+    for (const auto& swtch : m_switches) {
+        switches.emplace_back(swtch->to_json());
+    }
+
+    nlohmann::json links = nlohmann::json::array();
+    for (const auto& link : m_links) {
+        links.emplace_back(link->to_json());
+    }
+
+    // TODO: eliminate this peace of shit
+    nlohmann::json scenario = m_scenario.to_json();
+
+    std::unordered_map<Id, std::string> planed_to_send;
+    for (const auto& action : scenario) {
+        std::string data_to_send = action.at("size");
+        for (const auto& action : action["connection_ids"]) {
+            planed_to_send[action] += data_to_send;
+        }
+    }
+
+    nlohmann::json connections = nlohmann::json::array();
+    for (const auto& connection : m_connections) {
+        nlohmann::json connection_json = connection->to_json();
+        connection_json["data_to_send"] = planed_to_send[connection->get_id()];
+        connections.emplace_back(connection_json);
+    }
+
+    json["hosts"] = std::move(hosts);
+    json["switches"] = std::move(switches);
+    json["links"] = std::move(links);
+    json["connections"] = std::move(connections);
+    return json;
+}
 
 Simulator::AddResult Simulator::add_host(std::shared_ptr<IHost> host) {
     return default_add_object(host, m_hosts);
@@ -65,6 +111,8 @@ Simulator::DeleteResult Simulator::delete_link(std::shared_ptr<ILink> link) {
 void Simulator::set_scenario(Scenario&& scenario) {
     m_scenario = std::move(scenario);
 }
+
+Scenario& Simulator::get_scenario() { return m_scenario; }
 
 std::vector<std::shared_ptr<IDevice>> Simulator::get_devices() const {
     std::vector<std::shared_ptr<IDevice>> devices;

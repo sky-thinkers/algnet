@@ -32,10 +32,14 @@ TimeNs HostMock::process() { return TimeNs(1); }
 
 std::set<std::shared_ptr<sim::ILink>> HostMock::get_outlinks() { return {}; }
 
+std::set<std::shared_ptr<sim::ILink>> HostMock::get_inlinks() { return {}; }
+
 Id HostMock::get_id() const { return ""; }
 
 void HostMock::enqueue_packet([[maybe_unused]] sim::Packet packet) { return; }
 
 TimeNs HostMock::send_packet() { return TimeNs(0); }
+
+nlohmann::json HostMock::to_json() const { return nlohmann::json{}; }
 
 }  // namespace test

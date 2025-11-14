@@ -21,6 +21,7 @@ public:
         Packet packet) const = 0;
     virtual std::shared_ptr<ILink> next_inlink() = 0;
     virtual std::set<std::shared_ptr<ILink>> get_outlinks() = 0;
+    virtual std::set<std::shared_ptr<ILink>> get_inlinks() = 0;
 };
 
 }  // namespace sim

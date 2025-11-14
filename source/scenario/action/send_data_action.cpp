@@ -35,4 +35,20 @@ void SendDataAction::schedule() {
     }
 }
 
+nlohmann::json SendDataAction::to_json() const {
+    nlohmann::json json;
+    nlohmann::json connection_ids = nlohmann::json::array();
+    for (const auto& connection : m_conns) {
+        if (connection.expired()) {
+            continue;
+        }
+        connection_ids.emplace_back(connection.lock()->get_id());
+    }
+
+    json["connection_ids"] = connection_ids;
+    json["size"] =
+        fmt::format("{}b", std::uint32_t(std::round(m_size.value())));
+    return json;
+}
+
 }  // namespace sim

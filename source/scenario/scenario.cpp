@@ -12,4 +12,12 @@ void Scenario::start() {
     }
 }
 
+nlohmann::json Scenario::to_json() const {
+    nlohmann::json json = nlohmann::json::array();
+    for (const auto& action : m_actions) {
+        json.emplace_back(action->to_json());
+    }
+    return json;
+}
+
 }  // namespace sim

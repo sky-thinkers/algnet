@@ -26,6 +26,7 @@ public:
     std::vector<sim::Packet> get_arrived_packets() const;
 
     Id get_id() const final;
+    virtual nlohmann::json to_json() const final;
 
 private:
     std::weak_ptr<sim::IDevice> m_from;

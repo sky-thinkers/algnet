@@ -1,9 +1,10 @@
 #pragma once
 #include "i_device.hpp"
+#include "websocket/i_serializable.hpp"
 
 namespace sim {
 
-class IHost : public virtual IDevice {
+class IHost : public virtual IDevice, public virtual websocket::ISerializable {
 public:
     virtual ~IHost() = default;
 

@@ -40,4 +40,6 @@ SizeByte TestLink::get_max_to_ingress_queue_size() const {
 
 Id TestLink::get_id() const { return ""; }
 
+nlohmann::json TestLink::to_json() const { return nlohmann::json{}; }
+
 }  // namespace test

@@ -45,6 +45,8 @@ public:
 
     Id get_id() const final;
 
+    nlohmann::json to_json() const final;
+
 private:
     std::weak_ptr<sim::IDevice> src;
     std::weak_ptr<sim::IDevice> dst;

@@ -16,6 +16,7 @@ public:
                    TimeNs a_jitter);
 
     void schedule() final;
+    nlohmann::json to_json() const final;
 
 private:
     TimeNs m_when;
