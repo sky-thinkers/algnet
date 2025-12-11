@@ -1,6 +1,10 @@
 #include "simulator.hpp"
 
+#include "connection/connection_impl.hpp"
+#include "connection/flow/tcp/tahoe/tcp_tahoe_cc.hpp"
+#include "connection/flow/tcp/tcp_flow.hpp"
 #include "parser/parse_utils.hpp"
+#include "scenario/action/send_data_action.hpp"
 
 namespace sim {
 
@@ -74,7 +78,33 @@ Simulator::FromJsonResult Simulator::build_from_json(nlohmann::json json) {
             return res;
         }
     }
-    // nlohmann::json connections = json.at("connections");
+    nlohmann::json connections = json.at("connections");
+    for (auto conn_json : connections) {
+        auto conn = std::make_shared<ConnectionImpl>(conn_json);
+        if (auto res = add_connection(conn); !res.has_value()) {
+            return res;
+        }
+        Id flow_name = fmt::format("{}_flow", conn->get_id());
+        std::unique_ptr<sim::TcpTahoeCC> tahoe_cc =
+            std::make_unique<sim::TcpTahoeCC>();
+
+        SizeByte packet_size(1500);
+
+        std::shared_ptr<sim::TcpFlow> flow = std::make_shared<sim::TcpFlow>(
+            flow_name, conn, std::move(tahoe_cc), packet_size);
+
+        conn->add_flow(flow);
+
+        auto exp_data_to_send = parse_size(conn_json.at("data_to_send"));
+        if (!exp_data_to_send.has_value()) {
+            return std::unexpected(exp_data_to_send.error());
+        }
+        SizeByte data_to_send = exp_data_to_send.value();
+        std::vector<std::weak_ptr<IConnection>> conns_for_action = {conn};
+        m_scenario.add_action(std::make_unique<SendDataAction>(
+            TimeNs(0), data_to_send, std::move(conns_for_action), 1, TimeNs(0),
+            TimeNs(0)));
+    }
     return {};
 }
 
