@@ -50,6 +50,18 @@ nlohmann::json Simulator::to_json() const {
     return json;
 }
 
+Simulator::FromJsonResult Simulator::build_from_json(nlohmann::json json) {
+    clear();
+
+    (void)json;
+
+    // nlohmann::json hosts = json.at("hosts");
+    // nlohmann::json switches = json.at("switches");
+    // nlohmann::json links = json.at("links");
+    // nlohmann::json connections = json.at("connections");
+    return {};
+}
+
 Simulator::AddResult Simulator::add_host(std::shared_ptr<IHost> host) {
     return default_add_object(host, m_hosts);
 }
@@ -162,6 +174,41 @@ void Simulator::start() {
 std::unordered_set<std::shared_ptr<IConnection>> Simulator::get_connections()
     const {
     return m_connections;
+}
+
+Simulator::DeleteResult Simulator::clear() {
+    auto connections_copy = m_connections;
+    for (auto conn : connections_copy) {
+        if (auto res = delete_connection(conn); !res.has_value()) {
+            return res;
+        }
+    }
+
+    auto links_copy = m_links;
+    for (auto link : links_copy) {
+        if (auto res = delete_link(link); !res.has_value()) {
+            return res;
+        }
+    }
+
+    auto hosts_copy = m_hosts;
+    for (auto host : hosts_copy) {
+        if (auto res = delete_host(host); !res.has_value()) {
+            return res;
+        }
+    }
+
+    auto switches_copy = m_switches;
+    for (auto swtch : switches_copy) {
+        if (auto res = delete_switch(swtch); !res.has_value()) {
+            return res;
+        }
+    }
+
+    set_scenario(Scenario());
+    m_stop_time = std::nullopt;
+
+    return {};
 }
 
 }  // namespace sim

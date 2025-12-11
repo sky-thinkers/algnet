@@ -17,4 +17,10 @@ Response RemovedObjectList(const std::vector<Id>& object_ids) noexcept {
     return {{"type", "RemovedObjectList"}, {"ids", std::move(list)}};
 }
 
+Response SimulationState(const sim::Simulator& sim) {
+    auto json = sim.to_json();
+    json["type"] = "SimulationState";
+    return json;
+}
+
 }  // namespace websocket

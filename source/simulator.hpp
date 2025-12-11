@@ -27,6 +27,10 @@ public:
 
     nlohmann::json to_json() const final;
 
+    using FromJsonResult = std::expected<void, std::string>;
+
+    FromJsonResult build_from_json(nlohmann::json json);
+
     Simulator(const Simulator&) = delete;
     Simulator& operator=(const Simulator&) = delete;
 
@@ -68,6 +72,8 @@ public:
     std::unordered_set<std::shared_ptr<IConnection>> get_connections() const;
 
 private:
+    DeleteResult clear();
+
     enum class State {
         BEFORE_SIMULATION_START,
         SIMULATION_IN_PROGRESS,
