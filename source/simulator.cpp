@@ -60,7 +60,13 @@ Simulator::FromJsonResult Simulator::build_from_json(nlohmann::json json) {
             return res;
         }
     }
-    // nlohmann::json switches = json.at("switches");
+    nlohmann::json switches = json.at("switches");
+    for (auto swtch : switches) {
+        if (auto res = add_switch(std::make_shared<Switch>(swtch));
+            !res.has_value()) {
+            return res;
+        }
+    }
     // nlohmann::json links = json.at("links");
     // nlohmann::json connections = json.at("connections");
     return {};

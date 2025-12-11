@@ -14,6 +14,7 @@ class Switch : public ISwitch,
 public:
     Switch(Id a_id, ECN&& a_ecn = ECN(1.0, 1.0, 0.0),
            std::unique_ptr<IPacketHasher> a_packet_hasher = nullptr);
+    Switch(nlohmann::json json);
     ~Switch() = default;
 
     bool notify_about_arrival(TimeNs arrival_time) final;
