@@ -16,7 +16,11 @@ public:
 
     Id get_id() const final;
     bool add_inlink(std::shared_ptr<ILink> link) final;
+    bool delete_inlink(std::shared_ptr<ILink> link) final;
+    
     bool add_outlink(std::shared_ptr<ILink> link) final;
+    bool delete_outlink(std::shared_ptr<ILink> link) final;
+    
     bool update_routing_table(Id dest_id, std::shared_ptr<ILink> link,
                               size_t paths_count = 1) final;
     // returns next inlink and moves inlinks set iterator forward

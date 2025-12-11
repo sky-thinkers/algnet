@@ -38,6 +38,24 @@ bool RoutingModule::add_inlink(std::shared_ptr<ILink> link) {
     return true;
 }
 
+bool RoutingModule::delete_inlink(std::shared_ptr<ILink> link) {
+    if (!is_valid_link(link)) {
+        return false;
+    }
+
+    if (m_id != link->get_to()->get_id()) {
+        LOG_WARN(
+            "Link destination device is incorrect (expected current device)");
+        return false;
+    }
+    bool res = m_inlinks.erase(link) == 1;
+    m_next_inlink =
+        LoopIterator<std::set<std::weak_ptr<ILink>,
+                              std::owner_less<std::weak_ptr<ILink>>>::iterator>(
+            m_inlinks.begin(), m_inlinks.end());
+    return res;
+}
+
 bool RoutingModule::add_outlink(std::shared_ptr<ILink> link) {
     if (!is_valid_link(link)) {
         return false;
@@ -52,6 +70,17 @@ bool RoutingModule::add_outlink(std::shared_ptr<ILink> link) {
     }
     m_outlinks.insert(link);
     return true;
+}
+
+bool RoutingModule::delete_outlink(std::shared_ptr<ILink> link) {
+    if (!is_valid_link(link)) {
+        return false;
+    }
+    if (m_id != link->get_from()->get_id()) {
+        LOG_WARN("Outlink source is not our device");
+        return false;
+    }
+    return m_outlinks.erase(link) == 1;
 }
 
 bool RoutingModule::update_routing_table(Id dest_id,

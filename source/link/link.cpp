@@ -1,6 +1,7 @@
 #include "link/link.hpp"
 
 #include "logger/logger.hpp"
+#include "parser/parse_utils.hpp"
 #include "scheduler.hpp"
 #include "utils/str_expected.hpp"
 
@@ -35,6 +36,14 @@ Link::Link(LinkInitArgs args)
            args.speed.value_or_throw(), args.delay.value_or_throw(),
            args.max_from_egress_buffer_size.value_or_throw(),
            args.max_to_ingress_buffer_size.value_or_throw()) {}
+
+Link::Link(nlohmann::json json)
+    : Link((Id)json.at("name"),
+           IdentifierFactory::get_instance().get_object<IDevice>(
+               (Id)json.at("from_id")),
+           IdentifierFactory::get_instance().get_object<IDevice>(
+               (Id)json.at("to_id")),
+           parse_speed((const std::string&)json.at("speed")).value_or_throw()) {}
 
 void Link::schedule_arrival(Packet packet) {
     if (m_to.expired()) {

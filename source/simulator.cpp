@@ -67,7 +67,13 @@ Simulator::FromJsonResult Simulator::build_from_json(nlohmann::json json) {
             return res;
         }
     }
-    // nlohmann::json links = json.at("links");
+    nlohmann::json links = json.at("links");
+    for (auto link : links) {
+        if (auto res = add_link(std::make_shared<Link>(link));
+            !res.has_value()) {
+            return res;
+        }
+    }
     // nlohmann::json connections = json.at("connections");
     return {};
 }
@@ -125,8 +131,8 @@ Simulator::DeleteResult Simulator::delete_link(std::shared_ptr<ILink> link) {
     }
     auto a_from = link->get_from();
     auto a_to = link->get_to();
-    a_from->add_outlink(link);
-    a_to->add_inlink(link);
+    a_from->delete_outlink(link);
+    a_to->delete_inlink(link);
     return {};
 }
 

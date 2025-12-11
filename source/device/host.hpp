@@ -13,8 +13,8 @@ class Host : public IHost,
              public RoutingModule,
              public std::enable_shared_from_this<Host> {
 public:
-    Host(Id id);
-    Host(nlohmann::json json);
+    explicit Host(Id id);
+    explicit Host(nlohmann::json json);
     ~Host() = default;
 
     bool notify_about_arrival(TimeNs arrive_time) final;

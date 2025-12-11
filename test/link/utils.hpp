@@ -22,7 +22,11 @@ public:
 
     Id get_id() const final;
     bool add_inlink(std::shared_ptr<sim::ILink> link) final;
+    bool delete_inlink(std::shared_ptr<sim::ILink> link) final;
+    
     bool add_outlink(std::shared_ptr<sim::ILink> link) final;
+    bool delete_outlink(std::shared_ptr<sim::ILink> link) final;
+    
     bool update_routing_table(Id dest_id, std::shared_ptr<sim::ILink> link,
                               size_t paths_count) final;
     std::shared_ptr<sim::ILink> next_inlink() final;
