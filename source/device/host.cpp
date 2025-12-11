@@ -9,6 +9,8 @@ namespace sim {
 
 Host::Host(Id a_id) : RoutingModule(a_id) {}
 
+Host::Host(nlohmann::json json) : RoutingModule(json.at("name")) {}
+
 bool Host::notify_about_arrival(TimeNs arrival_time) {
     return m_process_scheduler.notify_about_arriving(arrival_time,
                                                      weak_from_this());

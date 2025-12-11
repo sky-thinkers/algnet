@@ -12,8 +12,9 @@ namespace sim {
 class Host : public IHost,
              public RoutingModule,
              public std::enable_shared_from_this<Host> {
-public: 
+public:
     Host(Id id);
+    Host(nlohmann::json json);
     ~Host() = default;
 
     bool notify_about_arrival(TimeNs arrive_time) final;

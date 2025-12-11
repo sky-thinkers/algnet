@@ -53,9 +53,13 @@ nlohmann::json Simulator::to_json() const {
 Simulator::FromJsonResult Simulator::build_from_json(nlohmann::json json) {
     clear();
 
-    (void)json;
-
-    // nlohmann::json hosts = json.at("hosts");
+    nlohmann::json hosts = json.at("hosts");
+    for (auto host : hosts) {
+        if (auto res = add_host(std::make_shared<Host>(host));
+            !res.has_value()) {
+            return res;
+        }
+    }
     // nlohmann::json switches = json.at("switches");
     // nlohmann::json links = json.at("links");
     // nlohmann::json connections = json.at("connections");
