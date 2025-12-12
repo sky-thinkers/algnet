@@ -51,7 +51,7 @@ void session(unsigned short port) {
     // This will receive the new connection
     tcp::socket socket{ioc};
 
-    LOG_INFO(fmt::format("Server started at {}:{}", address.to_string(), port));
+    LOG_ERROR(fmt::format("Server started at {}:{}", address.to_string(), port));
 
     // Block until we get a connection
     acceptor.accept(socket);

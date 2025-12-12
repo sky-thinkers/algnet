@@ -35,8 +35,8 @@ nlohmann::json Simulator::to_json() const {
     std::unordered_map<Id, std::string> planed_to_send;
     for (const auto& action : scenario) {
         std::string data_to_send = action.at("size");
-        for (const auto& action : action["connection_ids"]) {
-            planed_to_send[action] += data_to_send;
+        for (const auto& conn : action["connection_ids"]) {
+            planed_to_send[conn] = data_to_send;
         }
     }
 
