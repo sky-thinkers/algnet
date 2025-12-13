@@ -47,7 +47,7 @@ nlohmann::json SendDataAction::to_json() const {
 
     json["connection_ids"] = connection_ids;
     json["size"] =
-        fmt::format("{}b", std::uint32_t(std::round(m_size.value())));
+        fmt::format("{}B", std::uint32_t(std::round(m_size.value())));
     return json;
 }
 

@@ -1,6 +1,10 @@
 #include "simulator.hpp"
 
+#include "connection/connection_impl.hpp"
+#include "connection/flow/tcp/tahoe/tcp_tahoe_cc.hpp"
+#include "connection/flow/tcp/tcp_flow.hpp"
 #include "parser/parse_utils.hpp"
+#include "scenario/action/send_data_action.hpp"
 
 namespace sim {
 
@@ -31,8 +35,8 @@ nlohmann::json Simulator::to_json() const {
     std::unordered_map<Id, std::string> planed_to_send;
     for (const auto& action : scenario) {
         std::string data_to_send = action.at("size");
-        for (const auto& action : action["connection_ids"]) {
-            planed_to_send[action] += data_to_send;
+        for (const auto& conn : action["connection_ids"]) {
+            planed_to_send[conn] = data_to_send;
         }
     }
 
@@ -48,6 +52,60 @@ nlohmann::json Simulator::to_json() const {
     json["links"] = std::move(links);
     json["connections"] = std::move(connections);
     return json;
+}
+
+Simulator::FromJsonResult Simulator::build_from_json(nlohmann::json json) {
+    clear();
+
+    nlohmann::json hosts = json.at("hosts");
+    for (auto host : hosts) {
+        if (auto res = add_host(std::make_shared<Host>(host));
+            !res.has_value()) {
+            return res;
+        }
+    }
+    nlohmann::json switches = json.at("switches");
+    for (auto swtch : switches) {
+        if (auto res = add_switch(std::make_shared<Switch>(swtch));
+            !res.has_value()) {
+            return res;
+        }
+    }
+    nlohmann::json links = json.at("links");
+    for (auto link : links) {
+        if (auto res = add_link(std::make_shared<Link>(link));
+            !res.has_value()) {
+            return res;
+        }
+    }
+    nlohmann::json connections = json.at("connections");
+    for (auto conn_json : connections) {
+        auto conn = std::make_shared<ConnectionImpl>(conn_json);
+        if (auto res = add_connection(conn); !res.has_value()) {
+            return res;
+        }
+        Id flow_name = fmt::format("{}_flow", conn->get_id());
+        std::unique_ptr<sim::TcpTahoeCC> tahoe_cc =
+            std::make_unique<sim::TcpTahoeCC>();
+
+        SizeByte packet_size(1500);
+
+        std::shared_ptr<sim::TcpFlow> flow = std::make_shared<sim::TcpFlow>(
+            flow_name, conn, std::move(tahoe_cc), packet_size);
+
+        conn->add_flow(flow);
+
+        auto exp_data_to_send = parse_size(conn_json.at("data_to_send"));
+        if (!exp_data_to_send.has_value()) {
+            return std::unexpected(exp_data_to_send.error());
+        }
+        SizeByte data_to_send = exp_data_to_send.value();
+        std::vector<std::weak_ptr<IConnection>> conns_for_action = {conn};
+        m_scenario.add_action(std::make_unique<SendDataAction>(
+            TimeNs(0), data_to_send, std::move(conns_for_action), 1, TimeNs(0),
+            TimeNs(0)));
+    }
+    return {};
 }
 
 Simulator::AddResult Simulator::add_host(std::shared_ptr<IHost> host) {
@@ -103,8 +161,8 @@ Simulator::DeleteResult Simulator::delete_link(std::shared_ptr<ILink> link) {
     }
     auto a_from = link->get_from();
     auto a_to = link->get_to();
-    a_from->add_outlink(link);
-    a_to->add_inlink(link);
+    a_from->delete_outlink(link);
+    a_to->delete_inlink(link);
     return {};
 }
 
@@ -162,6 +220,41 @@ void Simulator::start() {
 std::unordered_set<std::shared_ptr<IConnection>> Simulator::get_connections()
     const {
     return m_connections;
+}
+
+Simulator::DeleteResult Simulator::clear() {
+    auto connections_copy = m_connections;
+    for (auto conn : connections_copy) {
+        if (auto res = delete_connection(conn); !res.has_value()) {
+            return res;
+        }
+    }
+
+    auto links_copy = m_links;
+    for (auto link : links_copy) {
+        if (auto res = delete_link(link); !res.has_value()) {
+            return res;
+        }
+    }
+
+    auto hosts_copy = m_hosts;
+    for (auto host : hosts_copy) {
+        if (auto res = delete_host(host); !res.has_value()) {
+            return res;
+        }
+    }
+
+    auto switches_copy = m_switches;
+    for (auto swtch : switches_copy) {
+        if (auto res = delete_switch(swtch); !res.has_value()) {
+            return res;
+        }
+    }
+
+    set_scenario(Scenario());
+    m_stop_time = std::nullopt;
+
+    return {};
 }
 
 }  // namespace sim

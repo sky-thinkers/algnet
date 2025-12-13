@@ -14,7 +14,16 @@ bool DeviceMock::add_inlink([[maybe_unused]] std::shared_ptr<sim::ILink> link) {
     return false;
 }
 
+bool DeviceMock::delete_inlink([[maybe_unused]] std::shared_ptr<sim::ILink> link) {
+    return false;
+}
+
 bool DeviceMock::add_outlink(
+    [[maybe_unused]] std::shared_ptr<sim::ILink> link) {
+    return false;
+}
+
+bool DeviceMock::delete_outlink(
     [[maybe_unused]] std::shared_ptr<sim::ILink> link) {
     return false;
 }

@@ -21,12 +21,12 @@ public:
 };
 
 TEST_F(TestSwitch, test_add_nullptr_link) {
-    auto switch_device = std::make_shared<sim::Switch>("");
+    auto switch_device = std::make_shared<sim::Switch>((Id)"");
     ASSERT_FALSE(switch_device->add_inlink(nullptr));
 }
 
 TEST_F(TestSwitch, test_add_incorrect_inlink) {
-    auto switch_device = std::make_shared<sim::Switch>("");
+    auto switch_device = std::make_shared<sim::Switch>((Id)"");
     std::shared_ptr<sim::IDevice> null_device(nullptr);
     std::shared_ptr<LinkMock> link =
         std::make_shared<LinkMock>(null_device, null_device);
@@ -42,14 +42,14 @@ TEST_F(TestSwitch, test_add_incorrect_inlink) {
 // }
 
 TEST_F(TestSwitch, nullptr_outlink) {
-    auto switch_device = std::make_shared<sim::Switch>("");
+    auto switch_device = std::make_shared<sim::Switch>((Id)"");
     auto temp_device = std::make_shared<test::HostMock>();
     ASSERT_FALSE(
         switch_device->update_routing_table(temp_device->get_id(), nullptr));
 }
 
 TEST_F(TestSwitch, add_foreign_inlink) {
-    auto switch_device = std::make_shared<sim::Switch>("test");
+    auto switch_device = std::make_shared<sim::Switch>((Id)"test");
     auto temp_device = std::make_shared<test::HostMock>();
     auto link = std::make_shared<LinkMock>(temp_device, switch_device);
     ASSERT_FALSE(
@@ -57,14 +57,14 @@ TEST_F(TestSwitch, add_foreign_inlink) {
 }
 
 TEST_F(TestSwitch, test_no_senders) {
-    auto switch_device = std::make_shared<sim::Switch>("");
+    auto switch_device = std::make_shared<sim::Switch>((Id)"");
     // TODO: replace with ASSERT_FALSE when process returns bool instead of
     // void
     switch_device->process();
 }
 
 TEST_F(TestSwitch, test_no_packets_on_inlinks) {
-    auto switch_device = std::make_shared<sim::Switch>("");
+    auto switch_device = std::make_shared<sim::Switch>((Id)"");
 
     // create links
     std::shared_ptr<sim::IDevice> null_device(nullptr);
@@ -78,7 +78,7 @@ TEST_F(TestSwitch, test_no_packets_on_inlinks) {
 }
 
 TEST_F(TestSwitch, test_no_destination_route) {
-    auto switch_device = std::make_shared<sim::Switch>("");
+    auto switch_device = std::make_shared<sim::Switch>((Id)"");
     auto receiver = std::make_shared<HostMock>();
     FlowMock flow(receiver);
     sim::Packet packet(SizeByte(0), &flow);
@@ -106,7 +106,7 @@ static bool compare_packets(const sim::Packet& p1, const sim::Packet& p2) {
 
 void test_senders(size_t senders_count) {
     // create devices
-    auto switch_device = std::make_shared<sim::Switch>("");
+    auto switch_device = std::make_shared<sim::Switch>((Id)"");
     std::shared_ptr<HostMock> receiver = std::make_shared<HostMock>();
     // create flows
     std::vector<FlowMock> flows;
@@ -173,10 +173,10 @@ TEST_F(TestSwitch, test_path_hash) {
     //   |            |
     //   |            |
     // switch_2 -- receiver
-    auto sender = std::make_shared<sim::Host>("sender");
-    auto switch_1 = std::make_shared<sim::Switch>("switch_1");
-    auto switch_2 = std::make_shared<sim::Switch>("switch_2");
-    auto receiver = std::make_shared<sim::Host>("receiver");
+    auto sender = std::make_shared<sim::Host>((Id) "sender");
+    auto switch_1 = std::make_shared<sim::Switch>((Id) "switch_1");
+    auto switch_2 = std::make_shared<sim::Switch>((Id) "switch_2");
+    auto receiver = std::make_shared<sim::Host>((Id) "receiver");
 
     auto link_sender_to_switch_1 = std::make_shared<LinkMock>(sender, switch_1);
     switch_1->add_inlink(link_sender_to_switch_1);

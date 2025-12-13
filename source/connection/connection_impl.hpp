@@ -18,6 +18,7 @@ public:
     ConnectionImpl(Id a_id, std::shared_ptr<IHost> a_src,
                    std::shared_ptr<IHost> a_dest,
                    std::shared_ptr<IMPLB> a_mplb);
+    ConnectionImpl(nlohmann::json json);
 
     ~ConnectionImpl() override = default;
 

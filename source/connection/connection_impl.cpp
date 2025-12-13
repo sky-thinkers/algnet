@@ -3,7 +3,7 @@
 #include "event/add_data_to_connection.hpp"
 #include "logger/logger.hpp"
 #include "scheduler.hpp"
-
+#include "mplb/round_robin_mplb.hpp"
 namespace sim {
 
 ConnectionImpl::ConnectionImpl(Id a_id, std::shared_ptr<IHost> a_src,
@@ -15,6 +15,14 @@ ConnectionImpl::ConnectionImpl(Id a_id, std::shared_ptr<IHost> a_src,
       m_mplb(std::move(a_mplb)),
       m_data_to_send(0),
       m_total_data_added(0) {}
+
+ConnectionImpl::ConnectionImpl(nlohmann::json json)
+    : ConnectionImpl(json.at("name"),
+                     IdentifierFactory::get_instance().get_object<IHost>(
+                         json.at("sender_id")),
+                     IdentifierFactory::get_instance().get_object<IHost>(
+                         json.at("receiver_id")),
+                     std::make_shared<sim::RoundRobinMPLB>()) {}
 
 Id ConnectionImpl::get_id() const { return m_id; }
 

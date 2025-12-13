@@ -28,6 +28,7 @@ public:
          SizeByte a_max_from_egress_buffer_size = SizeByte(4096),
          SizeByte a_max_to_ingress_buffer_size = SizeByte(4096));
     explicit Link(LinkInitArgs args);
+    explicit Link(nlohmann::json json);
     ~Link() = default;
 
     void schedule_arrival(Packet packet) final;

@@ -41,9 +41,9 @@ public:
 
 TEST_F(Start, TrivialTopology) {
     sim::Simulator sim;
-    auto sender = std::make_shared<sim::Host>("sender");
-    auto swtch = std::make_shared<sim::Switch>("switch");
-    auto receiver = std::make_shared<sim::Host>("receiver");
+    auto sender = std::make_shared<sim::Host>((Id)"sender");
+    auto swtch = std::make_shared<sim::Switch>((Id)"switch");
+    auto receiver = std::make_shared<sim::Host>((Id)"receiver");
 
     ASSERT_HAS_VALUE(sim.add_host(sender));
     ASSERT_HAS_VALUE(sim.add_switch(swtch));
@@ -80,8 +80,8 @@ TEST_F(Start, TrivialTopology) {
 TEST_F(Start, ThreeToOneTopology) {
     sim::Simulator sim;
 
-    auto swtch = std::make_shared<sim::Switch>("switch");
-    auto receiver = std::make_shared<sim::Host>("receiver");
+    auto swtch = std::make_shared<sim::Switch>((Id)"switch");
+    auto receiver = std::make_shared<sim::Host>((Id)"receiver");
     ASSERT_HAS_VALUE(sim.add_switch(swtch));
     ASSERT_HAS_VALUE(sim.add_host(receiver));
 
