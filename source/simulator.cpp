@@ -228,10 +228,6 @@ void Simulator::start() {
     while (Scheduler::get_instance().tick()) {
     }
     m_state = State::BEFORE_SIMULATION_START;
-    if (auto build_res = build_from_json(backup); !build_res.has_value()) {
-        LOG_ERROR(fmt::format("Error while rebuilding from backup: {}",
-                              build_res.error()));
-    }
 }
 
 std::unordered_set<std::shared_ptr<IConnection>> Simulator::get_connections()
