@@ -9,6 +9,8 @@ AddLink::AddLink(Id a_name, Id a_from, Id a_to, SpeedGbps a_speed)
     : m_name(a_name), m_from(a_from), m_to(a_to), m_speed(a_speed) {}
 
 Response AddLink::apply_to_simulator(sim::Simulator& simulator) {
+    const static TimeNs DELAY(1000);
+    const static SizeByte BUFFER_SIZE = Size<KByte>(512);
     const sim::IdentifierFactory& idf = sim::IdentifierFactory::get_instance();
     std::shared_ptr<sim::IDevice> from_device =
         idf.get_object<sim::IDevice>(m_from);
@@ -22,8 +24,10 @@ Response AddLink::apply_to_simulator(sim::Simulator& simulator) {
         return ErrorResponseData(
             fmt::format("Could not find 'to' device with id {}", m_to));
     }
+
     std::shared_ptr<sim::Link> link =
-        std::make_shared<sim::Link>(m_name, from_device, to_device, m_speed);
+        std::make_shared<sim::Link>(m_name, from_device, to_device, m_speed,
+                                    DELAY, BUFFER_SIZE, BUFFER_SIZE);
 
     auto result = simulator.add_link(link);
     if (result.has_value()) {

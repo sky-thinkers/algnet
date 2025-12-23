@@ -55,7 +55,10 @@ nlohmann::json Simulator::to_json() const {
 }
 
 Simulator::FromJsonResult Simulator::build_from_json(nlohmann::json json) {
-    clear();
+    if (auto clear_res = clear(); !clear_res.has_value()) {
+        LOG_ERROR(fmt::format("Error while clearing simulator: {}",
+                              clear_res.error()));
+    }
 
     nlohmann::json hosts = json.at("hosts");
     for (auto host : hosts) {
@@ -133,6 +136,14 @@ Simulator::AddResult Simulator::add_connection(
 
 Simulator::DeleteResult Simulator::delete_connection(
     std::shared_ptr<IConnection> connection) {
+    for (auto flow : connection->get_flows()) {
+        if (!IdentifierFactory::get_instance().delete_object(flow)) {
+            return std::unexpected(fmt::format(
+                "Cold not delete connection {} : cold not delete its flow {} "
+                "from IdentifierFactory",
+                connection->get_id(), flow->get_id()));
+        }
+    }
     return default_delete_object(connection, m_connections);
 }
 
@@ -216,10 +227,11 @@ void Simulator::start() {
     m_state = State::SIMULATION_IN_PROGRESS;
     while (Scheduler::get_instance().tick()) {
     }
-    m_state = State::SIMULATION_ENDED;
-    IdentifierFactory::get_instance().clear();
-    build_from_json(backup);
     m_state = State::BEFORE_SIMULATION_START;
+    if (auto build_res = build_from_json(backup); !build_res.has_value()) {
+        LOG_ERROR(fmt::format("Error while rebuilding from backup: {}",
+                              build_res.error()));
+    }
 }
 
 std::unordered_set<std::shared_ptr<IConnection>> Simulator::get_connections()
