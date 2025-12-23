@@ -164,6 +164,7 @@ private:
     std::unordered_set<std::shared_ptr<IConnection>> m_connections;
     std::unordered_set<std::shared_ptr<ILink>> m_links;
     Scenario m_scenario;
+    std::optional<std::string> m_backup;
 };
 
 }  // namespace sim

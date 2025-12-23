@@ -203,6 +203,8 @@ void Simulator::recalculate_paths() {
 void Simulator::set_stop_time(TimeNs stop_time) { m_stop_time = stop_time; }
 
 void Simulator::start() {
+    nlohmann::json backup = to_json();
+
     recalculate_paths();
 
     if (m_stop_time.has_value()) {
@@ -215,6 +217,9 @@ void Simulator::start() {
     while (Scheduler::get_instance().tick()) {
     }
     m_state = State::SIMULATION_ENDED;
+    IdentifierFactory::get_instance().clear();
+    build_from_json(backup);
+    m_state = State::BEFORE_SIMULATION_START;
 }
 
 std::unordered_set<std::shared_ptr<IConnection>> Simulator::get_connections()

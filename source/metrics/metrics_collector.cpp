@@ -145,4 +145,11 @@ void MetricsCollector::set_metrics_filter(const std::string& filter) {
     m_metrics_filter = filter;
 }
 
+void MetricsCollector::clear() {
+    for (auto& [name, storage] : m_multi_id_storages) {
+        storage.storage = MultiIdMetricsStorage(name, m_metrics_filter);
+    }
+    m_links_queue_size_storage = LinksQueueSizeStorage(m_metrics_filter);
+}
+
 }  // namespace sim

@@ -36,6 +36,8 @@ public:
     void export_metrics_to_files(std::filesystem::path metrics_dir) const;
     void draw_metric_plots(std::filesystem::path metrics_dir) const;
 
+    void clear();
+
     static void set_metrics_filter(const std::string& filter);
 
 private:
