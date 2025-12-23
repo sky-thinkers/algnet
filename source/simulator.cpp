@@ -214,8 +214,6 @@ void Simulator::recalculate_paths() {
 void Simulator::set_stop_time(TimeNs stop_time) { m_stop_time = stop_time; }
 
 void Simulator::start() {
-    nlohmann::json backup = to_json();
-
     recalculate_paths();
 
     if (m_stop_time.has_value()) {
