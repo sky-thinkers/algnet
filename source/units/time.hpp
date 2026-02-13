@@ -4,6 +4,9 @@
 #include <cstdint>
 #include <iostream>
 #include <type_traits>
+#ifdef _MSC_VER
+#include <concepts>
+#endif
 
 #include "ld_comparation.hpp"
 

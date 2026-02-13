@@ -1,6 +1,9 @@
 #pragma once
 
 #include <type_traits>
+#ifdef _MSC_VER
+#include <concepts>
+#endif
 
 #include "connection/flow/i_flow.hpp"
 #include "connection/i_connection.hpp"

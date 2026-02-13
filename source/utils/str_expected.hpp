@@ -4,6 +4,9 @@
 #include <stdexcept>
 #include <string>
 #include <type_traits>
+#ifdef _MSC_VER
+#include <concepts>
+#endif
 
 namespace utils {
 

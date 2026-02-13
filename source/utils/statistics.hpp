@@ -5,6 +5,9 @@
 #include <cstddef>
 #include <optional>
 #include <type_traits>
+#ifdef _MSC_VER
+#include <concepts>
+#endif
 
 #include "logger/logger.hpp"
 

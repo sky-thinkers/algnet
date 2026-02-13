@@ -1,6 +1,12 @@
 #pragma once
 #include "i_packet_reordering.hpp"
+
+#ifdef _MSC_VER
+#include <vector>
+#else
 #include "utils/ordered_set.hpp"
+#endif
+
 #include "utils/statistics.hpp"
 
 namespace sim {
@@ -17,6 +23,10 @@ private:
     // When m_packet_num_set.size() growth up it, the smallest element deletes
     std::size_t m_max_packets;
     uint64_t m_inversions_count;
+#ifdef _MSC_VER
+    std::vector<PacketNum> m_packet_num_set;
+#else
     utils::ordered_set<PacketNum> m_packet_num_set;
+#endif
 };
 }  // namespace sim

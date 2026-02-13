@@ -6,8 +6,18 @@ SimplePacketReordering::SimplePacketReordering(std::size_t a_max_packets)
     : m_max_packets(a_max_packets), m_inversions_count(0) {}
 
 void SimplePacketReordering::add_record(PacketNum packet_num) {
+#ifdef _MSC_VER
+    m_packet_num_set.emplace_back(packet_num);
+    std::size_t count_lower = m_packet_num_set.size() - 1;
+    while (count_lower > 0 &&
+           m_packet_num_set[count_lower] < m_packet_num_set[count_lower - 1]) {
+        std::swap(m_packet_num_set[count_lower], m_packet_num_set[count_lower - 1]);
+        count_lower--;
+    }
+#else
     m_packet_num_set.insert(packet_num);
     std::size_t count_lower = m_packet_num_set.order_of_key(packet_num);
+#endif
     std::size_t total_count = m_packet_num_set.size();
     std::size_t count_upper = total_count - count_lower - 1;
 

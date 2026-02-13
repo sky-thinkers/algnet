@@ -3,6 +3,9 @@
 #include <optional>
 #include <string>
 #include <type_traits>
+#ifdef _MSC_VER
+#include <concepts>
+#endif
 #include <unordered_map>
 
 #include "parse_utils.hpp"
